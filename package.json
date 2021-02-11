@@ -1,0 +1,43 @@
+{
+  "name": "caxa",
+  "version": "0.0.0",
+  "description": "Package Node.js applications into a single executable binary",
+  "main": "lib/index.js",
+  "bin": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "repository": "leafac/caxa",
+  "keywords": [
+    "packing",
+    "deployment",
+    "binary"
+  ],
+  "author": "Leandro Facchinetti <caxa@leafac.com> (https://leafac.com)",
+  "license": "MIT",
+  "bugs": "https://github.com/leafac/caxa/issues",
+  "homepage": "https://github.com/leafac/caxa#readme",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "prettier --check \"src/**/*\" --end-of-line auto && jest",
+    "build": "tsc",
+    "clean": "shx rm -rf lib"
+  },
+  "dependencies": {
+    "shelljs": "^0.8.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.20",
+    "@types/node": "^14.14.26",
+    "jest": "^26.6.3",
+    "prettier": "^2.2.1",
+    "shx": "^0.3.3",
+    "ts-jest": "^26.5.1",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.5"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
+  }
+}
