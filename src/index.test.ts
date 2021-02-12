@@ -27,3 +27,25 @@ test("echo-command-line-parameters", async () => {
     "
   `);
 });
+
+test("native-modules", async () => {
+  const temporaryDirectory = await fs.mkdtemp(
+    path.join(os.tmpdir(), "caxa-test-native-modules-")
+  );
+  shell.exec("npm install", { cwd: "examples/native-modules", silent: true });
+  shell.exec(
+    `ts-node src/index.ts examples/native-modules "node '[CAXA]/index.js'" "${temporaryDirectory}/native-modules"`,
+    { silent: true }
+  );
+  shell.rm("-rf", "/tmp/caxa/native-modules");
+  expect(
+    shell.exec(`"${temporaryDirectory}/native-modules"`, { silent: true })
+      .stdout
+  ).toMatchInlineSnapshot(`
+    "@leafac/sqlite: {
+      \\"example\\": \\"caxa native modules\\"
+    }
+    sharp: 48
+    "
+  `);
+});
