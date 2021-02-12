@@ -49,17 +49,21 @@ export default function caxa({
   shell.mkdir("-p", path.dirname(output));
   let preamble = sh`
     #!/usr/bin/env sh
+
     # Created by caxa/${VERSION} (https://github.com/leafac/caxa)
+
     if [ ! -d "${buildDirectory}" ]; then
       mkdir -p "${buildDirectory}"
       tail -n+$CAXA_TAR_LINE_COUNT "$0" | tar -xzC "${buildDirectory}"
     fi
+
     env CAXA=true PATH="${binDirectory}":$PATH ${commandToRun} "$@"
     exit $?
   `;
-  preamble = (preamble + "\n\n__CAXA_TAR__\n\n").replace(
+  preamble += "\n\n__CAXA_TAR__\n\n";
+  preamble = preamble.replace(
     "$CAXA_TAR_LINE_COUNT",
-    String(preamble.split("\n").length + 1)
+    String(preamble.split("\n").length)
   );
   fs.writeFileSync(output, preamble, { mode: 0o755 });
   fs.appendFileSync(output, fs.readFileSync(tarFile));
