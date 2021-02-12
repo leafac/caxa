@@ -41,12 +41,13 @@ export default function caxa({
   shell.exec(`tar -cvzf "${tarFile}" "${packageName}"`, {
     cwd: buildDirectory,
   });
+  shell.mkdir("-p", path.dirname(output));
   fs.writeFileSync(
     output,
     `#!/usr/bin/env sh
 if [ ! -d "${buildDirectory}" ]; then
   mkdir -p "${buildDirectory}"
-  tail -n+8 $0 | tar -xzC "${buildDirectory}"
+  tail -n+8 "$0" | tar -xzC "${buildDirectory}"
 fi
 env PATH="${binDirectory}":$PATH ${commandToRun.replaceAll(
       ":caxa:",
