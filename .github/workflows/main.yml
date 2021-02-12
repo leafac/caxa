@@ -6,7 +6,7 @@ jobs:
         os:
           - ubuntu
           - macos
-          - windows
+          # - windows
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v2
