@@ -9,6 +9,7 @@ import sh from "dedent";
 
 const VERSION = require("../package.json").version;
 
+// TODO: Make it async?
 export default function caxa({
   directoryToPackage,
   commandToRun,
@@ -53,7 +54,7 @@ export default function caxa({
       mkdir -p "${buildDirectory}"
       tail -n+$CAXA_TAR_LINE_COUNT "$0" | tar -xzC "${buildDirectory}"
     fi
-    env PATH="${binDirectory}":$PATH CAXA=true ${commandToRun} "$@"
+    env CAXA=true PATH="${binDirectory}":$PATH ${commandToRun} "$@"
     exit $?
   `;
   preamble = (preamble + "\n\n__CAXA_TAR__\n\n").replace(
@@ -63,6 +64,7 @@ export default function caxa({
   fs.writeFileSync(output, preamble, { mode: 0o755 });
   fs.appendFileSync(output, fs.readFileSync(tarFile));
   // TODO: Add option to remove build files?
+  // TODO: Return ‘packageDirectory’?
 }
 
 if (require.main === module)
