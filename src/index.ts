@@ -38,15 +38,17 @@ export default function caxa({
   shell.mkdir("-p", binDirectory);
   shell.cp(process.execPath, binDirectory);
   // TODO: Allow user to keep output silent.
-  shell.exec(`tar -cvzf ${tarFile} ${packageName}`, { cwd: buildDirectory });
+  shell.exec(`tar -cvzf "${tarFile}" "${packageName}"`, {
+    cwd: buildDirectory,
+  });
   fs.writeFileSync(
     output,
     `#!/usr/bin/env sh
 if [ ! -d "${buildDirectory}" ]; then
-  mkdir -p ${buildDirectory}
-  tail -n+8 $0 | tar -xzC ${buildDirectory}
+  mkdir -p "${buildDirectory}"
+  tail -n+8 $0 | tar -xzC "${buildDirectory}"
 fi
-env PATH=${binDirectory}:$PATH ${commandToRun.replaceAll(
+env PATH="${binDirectory}":$PATH ${commandToRun.replaceAll(
       ":caxa:",
       packageDirectory
     )}
