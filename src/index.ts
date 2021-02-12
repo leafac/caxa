@@ -6,6 +6,8 @@ import shell from "shelljs";
 import cryptoRandomString from "crypto-random-string";
 import * as commander from "commander";
 
+const VERSION = require("../package.json").version;
+
 export default function caxa({
   directoryToPackage,
   commandToRun,
@@ -42,28 +44,30 @@ export default function caxa({
     cwd: buildDirectory,
   });
   shell.mkdir("-p", path.dirname(output));
-  fs.writeFileSync(
-    output,
-    `#!/usr/bin/env sh
-if [ ! -d "${buildDirectory}" ]; then
-  mkdir -p "${buildDirectory}"
-  tail -n+8 "$0" | tar -xzC "${buildDirectory}"
-fi
-env PATH="${binDirectory}":$PATH ${commandToRun.replaceAll(
-      ":caxa:",
-      packageDirectory
-    )}
-exit $?
-`,
-    { mode: 0o755 }
-  );
+  let preamble = `
+    #!/usr/bin/env sh
+    # Created by caxa/${VERSION} (https://github.com/leafac/caxa)
+    if [ ! -d "${buildDirectory}" ]; then
+      mkdir -p "${buildDirectory}"
+      tail -n+$CAXA_START_OF_TAR "$0" | tar -xzC "${buildDirectory}"
+    fi
+    env PATH="${binDirectory}":$PATH CAXA=true ${commandToRun.replaceAll(
+    "[CAXA]",
+    packageDirectory
+  )} "$@"
+    exit $?
+  `;
+  preamble = preamble
+    .trim()
+    .replace("$CAXA_START_OF_TAR", String(preamble.split("\n").length + 1));
+  fs.writeFileSync(output, preamble, { mode: 0o755 });
   fs.appendFileSync(output, fs.readFileSync(tarFile));
   // TODO: Add option to remove build files?
 }
 
 if (require.main === module)
   commander.program
-    .version(require("../package.json").version)
+    .version(VERSION)
     .arguments("<directory-to-package> <command-to-run> <output>")
     .action(
       (directoryToPackage: string, commandToRun: string, output: string) => {
