@@ -5,6 +5,7 @@ import path from "path";
 import shell from "shelljs";
 import cryptoRandomString from "crypto-random-string";
 import * as commander from "commander";
+import sh from "dedent";
 
 const VERSION = require("../package.json").version;
 
@@ -30,6 +31,7 @@ export default function caxa({
   const packageDirectory = path.join(buildDirectory, packageName);
   const binDirectory = path.join(packageDirectory, "node_modules/.bin");
   const tarFile = `${packageDirectory}.tar.gz`;
+  commandToRun = commandToRun.replaceAll("[CAXA]", packageDirectory);
   console.log(`Build directory: ‘${buildDirectory}’`);
   shell.mkdir("-p", buildDirectory);
   shell.cp("-R", directoryToPackage, buildDirectory);
@@ -44,22 +46,20 @@ export default function caxa({
     cwd: buildDirectory,
   });
   shell.mkdir("-p", path.dirname(output));
-  let preamble = `
+  let preamble = sh`
     #!/usr/bin/env sh
     # Created by caxa/${VERSION} (https://github.com/leafac/caxa)
     if [ ! -d "${buildDirectory}" ]; then
       mkdir -p "${buildDirectory}"
-      tail -n+$CAXA_START_OF_TAR "$0" | tar -xzC "${buildDirectory}"
+      tail -n+$CAXA_TAR_LINE_COUNT "$0" | tar -xzC "${buildDirectory}"
     fi
-    env PATH="${binDirectory}":$PATH CAXA=true ${commandToRun.replaceAll(
-    "[CAXA]",
-    packageDirectory
-  )} "$@"
+    env PATH="${binDirectory}":$PATH CAXA=true ${commandToRun} "$@"
     exit $?
   `;
-  preamble = preamble
-    .trim()
-    .replace("$CAXA_START_OF_TAR", String(preamble.split("\n").length + 1));
+  preamble = (preamble + "\n\n__CAXA_TAR__\n\n").replace(
+    "$CAXA_TAR_LINE_COUNT",
+    String(preamble.split("\n").length + 1)
+  );
   fs.writeFileSync(output, preamble, { mode: 0o755 });
   fs.appendFileSync(output, fs.readFileSync(tarFile));
   // TODO: Add option to remove build files?
