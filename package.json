@@ -3,9 +3,7 @@
   "version": "0.0.1",
   "description": "Package Node.js applications into a single executable binary",
   "main": "lib/index.js",
-  "bin": {
-    "caxa": "lib/index.js"
-  },
+  "bin": "lib/index.js",
   "types": "lib/index.d.ts",
   "repository": "leafac/caxa",
   "keywords": [
