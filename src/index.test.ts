@@ -9,7 +9,7 @@ test("echo-command-line-parameters", async () => {
     path.join(os.tmpdir(), "caxa-test-echo-command-line-parameters-")
   );
   shell.exec(
-    `ts-node src/index.ts examples/echo-command-line-parameters "node '[CAXA]/index.js'" "${temporaryDirectory}/echo-command-line-parameters"`,
+    `ts-node src/index.ts examples/echo-command-line-parameters "node '{{caxa}}/index.js'" "${temporaryDirectory}/echo-command-line-parameters"`,
     { silent: true }
   );
   shell.rm("-rf", "/tmp/caxa/echo-command-line-parameters");
@@ -34,7 +34,7 @@ test("native-modules", async () => {
   );
   shell.exec("npm install", { cwd: "examples/native-modules", silent: true });
   shell.exec(
-    `ts-node src/index.ts examples/native-modules "node '[CAXA]/index.js'" "${temporaryDirectory}/native-modules"`,
+    `ts-node src/index.ts examples/native-modules "node '{{caxa}}/index.js'" "${temporaryDirectory}/native-modules"`,
     { silent: true }
   );
   shell.rm("-rf", "/tmp/caxa/native-modules");

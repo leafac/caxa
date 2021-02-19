@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import archiver from "archiver";
 import shell from "shelljs";
 import cryptoRandomString from "crypto-random-string";
 import * as commander from "commander";
@@ -9,7 +10,6 @@ import sh from "dedent";
 
 const VERSION = require("../package.json").version;
 
-// TODO: Make it async?
 export default function caxa({
   directoryToPackage,
   commandToRun,
@@ -19,62 +19,55 @@ export default function caxa({
   commandToRun: string;
   output: string;
 }): void {
-  // TODO: Expand ‘directoryToPackage’ (for example, if it’s ‘.’)?
-  const packageName = path.basename(directoryToPackage);
+  const packageName = path.basename(path.resolve(directoryToPackage));
   const buildDirectory = path.join(
-    "/tmp",
-    "caxa",
+    "/tmp/caxa",
     packageName,
-    cryptoRandomString({
-      length: 10,
-    })
+    cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
-  const packageDirectory = path.join(buildDirectory, packageName);
-  const binDirectory = path.join(packageDirectory, "node_modules/.bin");
-  const tarFile = `${packageDirectory}.tar.gz`;
-  commandToRun = commandToRun.replaceAll("[CAXA]", packageDirectory);
-  console.log(`Build directory: ‘${buildDirectory}’`);
-  shell.mkdir("-p", buildDirectory);
+  commandToRun = commandToRun.replaceAll(/\{\{\s*caxa\s*\}\}/g, buildDirectory);
+  const binDirectory = path.join(buildDirectory, "node_modules/.bin");
+  shell.mkdir("-p", path.dirname(buildDirectory));
   shell.cp("-R", directoryToPackage, buildDirectory);
-  // TODO: Allow user to provide more paths to delete.
-  shell.rm("-rf", path.join(packageDirectory, ".git"));
-  // TODO: Allow user to not run ‘prune’.
-  shell.exec("npm prune --production", { cwd: packageDirectory });
+  shell.exec("npm prune --production", { cwd: buildDirectory });
+  shell.exec("npm dedupe", { cwd: buildDirectory });
   shell.mkdir("-p", binDirectory);
   shell.cp(process.execPath, binDirectory);
-  // TODO: Allow user to keep output silent.
-  shell.exec(`tar -cvzf "${tarFile}" "${packageName}"`, {
-    cwd: buildDirectory,
-  });
   shell.mkdir("-p", path.dirname(output));
-  let preamble = sh`
-    #!/usr/bin/env sh
+  let stub =
+    sh`
+      #!/usr/bin/env sh
 
-    # Created by caxa/${VERSION} (https://github.com/leafac/caxa)
+      # Packaged by caxa/${VERSION} (https://github.com/leafac/caxa)
 
-    if [ ! -d "${buildDirectory}" ]; then
-      mkdir -p "${buildDirectory}"
-      tail -n+$CAXA_TAR_LINE_COUNT "$0" | tar -xzC "${buildDirectory}"
-    fi
+      if [ ! -d "${buildDirectory}" ]; then
+        mkdir -p "${buildDirectory}"
+        tail -n+{{caxaStubLineCount}} "$0" | tar -xzC "${buildDirectory}"
+      fi
 
-    env CAXA=true PATH="${binDirectory}":$PATH ${commandToRun} "$@"
-    exit $?
-  `;
-  preamble += "\n\n__CAXA_TAR__\n\n";
-  preamble = preamble.replace(
-    "$CAXA_TAR_LINE_COUNT",
-    String(preamble.split("\n").length)
-  );
-  fs.writeFileSync(output, preamble, { mode: 0o755 });
-  fs.appendFileSync(output, fs.readFileSync(tarFile));
+      env CAXA=true PATH="${binDirectory}:$PATH" ${commandToRun} "$@"
+      exit $?
+    ` + `\n\n${"#".repeat(80)}\n\n`;
+  stub = stub.replace("{{caxaStubLineCount}}", String(stub.split("\n").length));
+  fs.writeFileSync(output, stub, { mode: 0o755 });
+  const payload = archiver("tar");
+  payload.pipe(fs.createWriteStream(output, { flags: "a" }));
+  payload.directory(buildDirectory, false);
+  payload.finalize();
   // TODO: Add option to remove build files?
-  // TODO: Return ‘packageDirectory’?
+  // TODO: Return ‘buildDirectory’?
 }
+
+// TODO: Extensions:
+//       No-extension (self-extracting binary) (macOS / Linux)
+//       .app / .app.zip / .app.tar.gz / .app.tgz (Bundle) (option to show the terminal or not) (macOS)
+//       .exe / .exe.zip / .exe.tar.gz / .exe.tgz (self-extracting binary) (option to show the terminal or not) (Windows)
+//       .zip / .tar.gz / .tgz (Binary bundle) (macOS / Linux / Windows)
 
 if (require.main === module)
   commander.program
-    .version(VERSION)
     .arguments("<directory-to-package> <command-to-run> <output>")
+    .version(VERSION)
     .action(
       (directoryToPackage: string, commandToRun: string, output: string) => {
         caxa({ directoryToPackage, commandToRun, output });
