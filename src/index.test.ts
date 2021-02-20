@@ -1,51 +1,49 @@
-import { test, expect } from "@jest/globals";
+import { jest, test, expect, beforeAll } from "@jest/globals";
 import os from "os";
 import path from "path";
-import fs from "fs/promises";
-import shell from "shelljs";
+import fs from "fs-extra";
+import execa from "execa";
+import caxa from ".";
+
+jest.setTimeout(60000);
+
+let temporaryDirectory: string;
+beforeAll(async () => {
+  temporaryDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "caxa-tests-"));
+});
 
 test("echo-command-line-parameters", async () => {
-  const temporaryDirectory = await fs.mkdtemp(
-    path.join(os.tmpdir(), "caxa-test-echo-command-line-parameters-")
-  );
-  shell.exec(
-    `ts-node src/index.ts examples/echo-command-line-parameters "node '{{caxa}}/index.js'" "${temporaryDirectory}/echo-command-line-parameters"`,
-    { silent: true }
-  );
-  shell.rm("-rf", "/tmp/caxa/echo-command-line-parameters");
-  expect(
-    shell.exec(
-      `"${temporaryDirectory}/echo-command-line-parameters" single-parameter "parameter separated by spaces" 'parameter delimited by single quotes'`,
-      { silent: true }
-    ).stdout
+  const binary = path.join(temporaryDirectory, "echo-command-line-parameters");
+  await caxa({
+    directoryToPackage: "examples/echo-command-line-parameters",
+    commandToRun: `node "{{caxa}}/index.js"`,
+    output: binary,
+    removeBuildDirectory: true,
+  });
+  await expect(
+    (await execa(binary, ["parameter-without-spaces", "parameter with spaces"]))
+      .stdout
   ).toMatchInlineSnapshot(`
-    "[
-      \\"single-parameter\\",
-      \\"parameter separated by spaces\\",
-      \\"parameter delimited by single quotes\\"
-    ]
-    "
-  `);
+          "[
+            \\"parameter-without-spaces\\",
+            \\"parameter with spaces\\"
+          ]"
+        `);
 });
 
 test("native-modules", async () => {
-  const temporaryDirectory = await fs.mkdtemp(
-    path.join(os.tmpdir(), "caxa-test-native-modules-")
-  );
-  shell.exec("npm install", { cwd: "examples/native-modules", silent: true });
-  shell.exec(
-    `ts-node src/index.ts examples/native-modules "node '{{caxa}}/index.js'" "${temporaryDirectory}/native-modules"`,
-    { silent: true }
-  );
-  shell.rm("-rf", "/tmp/caxa/native-modules");
-  expect(
-    shell.exec(`"${temporaryDirectory}/native-modules"`, { silent: true })
-      .stdout
-  ).toMatchInlineSnapshot(`
-    "@leafac/sqlite: {
-      \\"example\\": \\"caxa native modules\\"
-    }
-    sharp: 48
-    "
-  `);
+  const binary = path.join(temporaryDirectory, "native-modules");
+  await execa("npm", ["install"], { cwd: "examples/native-modules" });
+  await caxa({
+    directoryToPackage: "examples/native-modules",
+    commandToRun: `node "{{caxa}}/index.js"`,
+    output: binary,
+    removeBuildDirectory: true,
+  });
+  await expect((await execa(binary)).stdout).toMatchInlineSnapshot(`
+          "@leafac/sqlite: {
+            \\"example\\": \\"caxa native modules\\"
+          }
+          sharp: 48"
+        `);
 });

@@ -15,11 +15,13 @@ export default async function caxa({
   directoryToPackage,
   commandToRun,
   output,
+  removeBuildDirectory = false,
 }: {
   directoryToPackage: string;
   commandToRun: string;
   output: string;
-}): Promise<void> {
+  removeBuildDirectory?: boolean;
+}): Promise<string> {
   if (
     !(await fs.pathExists(directoryToPackage)) ||
     !(await fs.lstat(directoryToPackage)).isDirectory()
@@ -64,9 +66,8 @@ export default async function caxa({
   payload.pipe(fs.createWriteStream(output, { flags: "a" }));
   payload.directory(buildDirectory, false);
   await payload.finalize();
-  // TODO: Add option to remove build files?
-  // TODO: Add option to remove uncompressed files?
-  // TODO: Return ‘buildDirectory’?
+  if (removeBuildDirectory) await fs.remove(buildDirectory);
+  return buildDirectory;
 }
 
 // TODO: Extensions:
@@ -79,15 +80,24 @@ if (require.main === module)
   (async () => {
     await commander.program
       .arguments("<directory-to-package> <command-to-run> <output>")
+      .option("-r, --remove-build-directory")
       .version(VERSION)
       .action(
         async (
           directoryToPackage: string,
           commandToRun: string,
-          output: string
+          output: string,
+          {
+            removeBuildDirectory,
+          }: { removeBuildDirectory: boolean | undefined }
         ) => {
           try {
-            await caxa({ directoryToPackage, commandToRun, output });
+            await caxa({
+              directoryToPackage,
+              commandToRun,
+              output,
+              removeBuildDirectory,
+            });
           } catch (error) {
             console.error(error.message);
             process.exit(1);
