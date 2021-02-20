@@ -13,15 +13,15 @@ beforeAll(async () => {
 });
 
 test("echo-command-line-parameters", async () => {
-  const binary = path.join(temporaryDirectory, "echo-command-line-parameters");
+  const output = path.join(temporaryDirectory, "echo-command-line-parameters");
   await caxa({
     directoryToPackage: "examples/echo-command-line-parameters",
-    commandToRun: `node "{{caxa}}/index.js"`,
-    output: binary,
+    commandToRun: `node "{{ caxa }}/index.js"`,
+    output,
     removeBuildDirectory: true,
   });
   await expect(
-    (await execa(binary, ["parameter-without-spaces", "parameter with spaces"]))
+    (await execa(output, ["parameter-without-spaces", "parameter with spaces"]))
       .stdout
   ).toMatchInlineSnapshot(`
           "[
@@ -31,16 +31,42 @@ test("echo-command-line-parameters", async () => {
         `);
 });
 
+if (os.platform() === "darwin")
+  test("Echo Command-Line Parameters.app", async () => {
+    const output = path.join(
+      temporaryDirectory,
+      "Echo Command-Line Parameters.app"
+    );
+    await caxa({
+      directoryToPackage: "examples/echo-command-line-parameters",
+      commandToRun: `node "{{ caxa }}/index.js"`,
+      output,
+    });
+    await expect(
+      (
+        await execa(
+          path.join(output, "Contents/MacOS/Echo Command-Line Parameters"),
+          ["parameter-without-spaces", "parameter with spaces"]
+        )
+      ).stdout
+    ).toMatchInlineSnapshot(`
+          "[
+            \\"parameter-without-spaces\\",
+            \\"parameter with spaces\\"
+          ]"
+        `);
+  });
+
 test("native-modules", async () => {
-  const binary = path.join(temporaryDirectory, "native-modules");
+  const output = path.join(temporaryDirectory, "native-modules");
   await execa("npm", ["install"], { cwd: "examples/native-modules" });
   await caxa({
     directoryToPackage: "examples/native-modules",
-    commandToRun: `node "{{caxa}}/index.js"`,
-    output: binary,
+    commandToRun: `node "{{ caxa }}/index.js"`,
+    output,
     removeBuildDirectory: true,
   });
-  await expect((await execa(binary)).stdout).toMatchInlineSnapshot(`
+  await expect((await execa(output)).stdout).toMatchInlineSnapshot(`
           "@leafac/sqlite: {
             \\"example\\": \\"caxa native modules\\"
           }
