@@ -51,7 +51,7 @@ export default async function caxa({
 
       if [ ! -d "${buildDirectory}" ]; then
         mkdir -p "${buildDirectory}"
-        tail -n+{{caxaPayloadStart}} "$0" | tar -xzC "${buildDirectory}"
+        tail -n+{{ caxaPayloadStart }} "$0" | tar -xzC "${buildDirectory}"
       fi
 
       env CAXA=true PATH="${binDirectory}:$PATH" ${commandToRun.replaceAll(
@@ -60,7 +60,10 @@ export default async function caxa({
     )} "$@"
       exit $?
     ` + `\n\n${"#".repeat(80)}\n\n`;
-  stub = stub.replace("{{caxaPayloadStart}}", String(stub.split("\n").length));
+  stub = stub.replace(
+    "{{ caxaPayloadStart }}",
+    String(stub.split("\n").length)
+  );
   await fs.writeFile(output, stub, { mode: 0o755 });
   const payload = archiver("tar");
   payload.pipe(fs.createWriteStream(output, { flags: "a" }));
