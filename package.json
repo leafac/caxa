@@ -1,7 +1,7 @@
 {
   "name": "caxa",
   "version": "0.0.1",
-  "description": "Package Node.js applications into a single executable binary",
+  "description": "Package Node.js applications into executable binaries",
   "main": "lib/index.js",
   "bin": "lib/index.js",
   "types": "lib/index.d.ts",
