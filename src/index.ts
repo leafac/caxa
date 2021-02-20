@@ -73,12 +73,6 @@ export default async function caxa({
   return buildDirectory;
 }
 
-// TODO: Extensions:
-//       No-extension (self-extracting binary) (macOS / Linux)
-//       .app / .app.zip / .app.tar.gz / .app.tgz (Bundle) (option to show the terminal or not) (macOS)
-//       .exe / .exe.zip / .exe.tar.gz / .exe.tgz (self-extracting binary) (option to show the terminal or not) (Windows)
-//       .zip / .tar.gz / .tgz (Binary bundle) (macOS / Linux / Windows)
-
 if (require.main === module)
   (async () => {
     await commander.program
