@@ -2,6 +2,8 @@
 
 import process from "process";
 import path from "path";
+import os from "os";
+import { strict as assert } from "assert";
 import fs from "fs-extra";
 import execa from "execa";
 import archiver from "archiver";
@@ -29,12 +31,28 @@ export default async function caxa({
     throw new Error(
       `Directory to package isn’t a directory: ‘${directoryToPackage}’`
     );
-  const packageName = path.basename(path.resolve(directoryToPackage));
-  const buildDirectory = path.join(
-    "/tmp/caxa",
-    packageName,
-    cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
-  );
+  const format = output.endsWith(".app")
+    ? "macOS Application Bundle"
+    : "Self-Extracting on UNIX";
+  if (format === "macOS Application Bundle" && os.platform() !== "darwin")
+    throw new Error(
+      "macOS Application Bundles (.app) are supported in macOS only."
+    );
+  if (format === "macOS Application Bundle" && removeBuildDirectory)
+    throw new Error(
+      "The ‘removeBuildDirectory’ option doesn’t make sense with the macOS Application Bundle (.app) format."
+    );
+  let buildDirectory =
+    format === "Self-Extracting on UNIX"
+      ? path.join(
+          "/tmp/caxa",
+          path.basename(output),
+          cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
+        )
+      : format === "macOS Application Bundle"
+      ? path.join(output, "Contents/Resources/app")
+      : undefined;
+  assert(typeof buildDirectory === "string");
   const binDirectory = path.join(buildDirectory, "node_modules/.bin");
   await fs.copy(directoryToPackage, buildDirectory);
   await execa("npm", ["prune", "--production"], { cwd: buildDirectory });
@@ -43,32 +61,64 @@ export default async function caxa({
     process.execPath,
     path.join(binDirectory, path.basename(process.execPath))
   );
-  let stub =
-    sh`
-      #!/usr/bin/env sh
+  switch (format) {
+    case "Self-Extracting on UNIX": {
+      let stub =
+        sh`
+          #!/usr/bin/env sh
+    
+          # Packaged by caxa/${VERSION} (https://github.com/leafac/caxa)
+    
+          if [ ! -d "${buildDirectory}" ]; then
+            mkdir -p "${buildDirectory}"
+            tail -n+{{ caxaPayloadStart }} "$0" | tar -xzC "${buildDirectory}"
+          fi
+    
+          env CAXA=true PATH="${binDirectory}:$PATH" ${commandToRun.replaceAll(
+          /\{\{\s*caxa\s*\}\}/g,
+          buildDirectory
+        )} "$@"
+          exit $?
+        ` + `\n\n${"#".repeat(80)}\n\n`;
+      stub = stub.replace(
+        "{{ caxaPayloadStart }}",
+        String(stub.split("\n").length)
+      );
+      await fs.writeFile(output, stub, { mode: 0o755 });
+      const payload = archiver("tar");
+      payload.pipe(fs.createWriteStream(output, { flags: "a" }));
+      payload.directory(buildDirectory, false);
+      await payload.finalize();
+      break;
+    }
 
-      # Packaged by caxa/${VERSION} (https://github.com/leafac/caxa)
+    case "macOS Application Bundle": {
+      const entryPoint = path.join(
+        output,
+        "Contents/MacOS",
+        path.basename(output, ".app")
+      );
+      const dirname = `$(dirname "$0")`;
+      const buildDirectory = `${dirname}/../Resources/app`;
+      const binDirectory = `${buildDirectory}/node_modules/.bin`;
+      await fs.ensureDir(path.dirname(entryPoint));
+      await fs.writeFile(
+        entryPoint,
+        sh`
+          #!/usr/bin/env sh
 
-      if [ ! -d "${buildDirectory}" ]; then
-        mkdir -p "${buildDirectory}"
-        tail -n+{{ caxaPayloadStart }} "$0" | tar -xzC "${buildDirectory}"
-      fi
+          # Packaged by caxa/${VERSION} (https://github.com/leafac/caxa)
 
-      env CAXA=true PATH="${binDirectory}:$PATH" ${commandToRun.replaceAll(
-      /\{\{\s*caxa\s*\}\}/g,
-      buildDirectory
-    )} "$@"
-      exit $?
-    ` + `\n\n${"#".repeat(80)}\n\n`;
-  stub = stub.replace(
-    "{{ caxaPayloadStart }}",
-    String(stub.split("\n").length)
-  );
-  await fs.writeFile(output, stub, { mode: 0o755 });
-  const payload = archiver("tar");
-  payload.pipe(fs.createWriteStream(output, { flags: "a" }));
-  payload.directory(buildDirectory, false);
-  await payload.finalize();
+          env CAXA=true PATH="${binDirectory}:$PATH" ${commandToRun.replaceAll(
+          /\{\{\s*caxa\s*\}\}/g,
+          buildDirectory
+        )} "$@"
+        `,
+        { mode: 0o755 }
+      );
+      break;
+    }
+  }
   if (removeBuildDirectory) await fs.remove(buildDirectory);
   return buildDirectory;
 }
