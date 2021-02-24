@@ -43,8 +43,8 @@
     "typescript": "^4.1.5"
   },
   "jest": {
+    "rootDir": "src",
     "preset": "ts-jest",
-    "testEnvironment": "node",
-    "rootDir": "src"
+    "testEnvironment": "node"
   }
 }
