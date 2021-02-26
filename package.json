@@ -20,7 +20,8 @@
   },
   "scripts": {
     "test": "prettier --check \"src/**/*\" --end-of-line auto && jest",
-    "prepare": "tsc"
+    "prepare": "tsc",
+    "build": "rm -rf stubs untar && go build -o stubs/linux src/stub.go && printf \"##########\" >> stubs/linux && echo \"node --version\" >> stubs/linux && tar -czf - src/stub.go >> stubs/linux && stubs/linux"
   },
   "dependencies": {
     "archiver": "^5.2.0",
