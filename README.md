@@ -8,6 +8,18 @@
 
 <!--
 
+More references:
+
+https://superuser.com/questions/42788/is-it-possible-to-execute-a-file-after-extraction-from-a-7-zip-self-extracting-a
+http://ntsblog.homedev.com.au/index.php/2015/05/14/self-extracting-archive-runs-setup-exe-7zip-sfx-switch/
+https://nsis.sourceforge.io/Main_Page
+https://www.7-zip.org/sdk.html
+https://superuser.com/questions/1048866/creating-7zip-sfx-installer
+https://sevenzip.osdn.jp/chm/start.htm
+https://sevenzip.osdn.jp/chm/cmdline/switches/sfx.htm
+
+copy /b 7z\bin\7zS2con.sfx + config.txt + echo-command-line-parameters.7z extract\echo-command-line-parameters.exe
+
 ```console
 $ caxa "examples/echo-command-line-parameters" 'node "{{ caxa }}/index.js"' "/tmp/Echo Command-Line Parameters.app"
 $ caxa "examples/echo-command-line-parameters" 'node "{{ caxa }}/index.js"' "/tmp/echo-command-line-parameters"
