@@ -13,6 +13,13 @@ import (
 	"syscall"
 )
 
+// TODO: Consider a simpler yet richer format for the payload:
+// tar/base64 -> JSON with command-line options -> gzip
+// https://stackoverflow.com/questions/1443158/binary-data-in-json-string-something-better-than-base64
+// multipart form data
+// asar
+// WINNING IDEA: Just use a line of JSON before the archive!
+
 // TODO: Include err in the error messages.
 func main() {
 	payloadSeparator := []byte(strings.Repeat("#", 10))
