@@ -8,6 +8,13 @@
 
 <!--
 
+install go 
+    "postinstall": "node postinstall.js install",
+    "preuninstall": "node postinstall.js uninstall"
+
+    https://blog.xendit.engineer/how-we-repurposed-npm-to-publish-and-distribute-our-go-binaries-for-internal-cli-23981b80911b
+    https://www.npmjs.com/package/npm-golang
+
 Go packages:
 https://github.com/mholt/archiver/blob/v1.1.2/targz.go
 https://pkg.go.dev/golang.org/x/build/internal/untar / https://github.com/k3s-io/k3s/blob/v1.0.1/pkg/untar/untar.go / https://pkg.go.dev/github.com/rancher/k3s/pkg/untar
