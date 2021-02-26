@@ -8,6 +8,11 @@
 
 <!--
 
+Go packages:
+https://github.com/mholt/archiver/blob/v1.1.2/targz.go
+https://pkg.go.dev/golang.org/x/build/internal/untar / https://github.com/k3s-io/k3s/blob/v1.0.1/pkg/untar/untar.go / https://pkg.go.dev/github.com/rancher/k3s/pkg/untar
+
+
 More references:
 
 https://superuser.com/questions/42788/is-it-possible-to-execute-a-file-after-extraction-from-a-7-zip-self-extracting-a

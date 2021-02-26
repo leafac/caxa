@@ -21,7 +21,8 @@
   "scripts": {
     "test": "prettier --check \"src/**/*\" --end-of-line auto && jest",
     "prepare": "tsc",
-    "build": "rm -rf stubs untar && go build -o stubs/linux src/stub.go && printf \"##########\" >> stubs/linux && echo \"node --version\" >> stubs/linux && tar -czf - src/stub.go >> stubs/linux && stubs/linux"
+    "stubs": "cd stubs && shx rm -f macos linux windows.exe && cross-env GOOS=darwin go build -o macos stub.go && shx echo -n \"### CAXA ###\" >> macos && cross-env GOOS=linux go build -o linux stub.go && shx echo -n \"### CAXA ###\" >> linux && cross-env GOOS=windows go build -o windows.exe stub.go && shx echo -n \"### CAXA ###\" >> windows.exe",
+    "TODO": "npm run stubs && tar -czf - stubs/stub.go >> stubs/linux && shx echo -n \"JSON GOES HERE\" >> stubs/windows.exe && stubs/windows.exe"
   },
   "dependencies": {
     "archiver": "^5.2.0",
@@ -37,8 +38,10 @@
     "@types/fs-extra": "^9.0.7",
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.26",
+    "cross-env": "^7.0.3",
     "jest": "^26.6.3",
     "prettier": "^2.2.1",
+    "shx": "^0.3.3",
     "ts-jest": "^26.5.1",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.5"
