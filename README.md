@@ -10,6 +10,11 @@
 
 Might as well use exec package, because of https://github.com/golang/go/issues/30662
 
+	// https://golang.org/pkg/os/exec/
+	// https://golang.org/pkg/syscall/#Exec
+	// https://pkg.go.dev/golang.org/x/sys
+	// https://pkg.go.dev/golang.org/x/sys@v0.0.0-20210226181700-f36f78243c0c/unix#Exec
+	// https://pkg.go.dev/golang.org/x/sys@v0.0.0-20210226181700-f36f78243c0c/windows/mkwinsyscall
 
 
 // TODO: Consider a simpler yet richer format for the payload:

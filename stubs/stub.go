@@ -75,15 +75,7 @@ func main() {
 		log.Fatalf("caxa stub: Failed to run command: %v", err)
 	}
 	// // TODO: Extend PATH
-	// // TODO: Forward exit status out
 	// Replace {{caxa}} placeholders
-	// // runtime.GOOS == "windows"
-	// syscall.Exec("/bin/ls", []string{"ls", "-la"}, os.Environ())
-	// https://golang.org/pkg/os/exec/
-	// https://golang.org/pkg/syscall/#Exec
-	// https://pkg.go.dev/golang.org/x/sys
-	// https://pkg.go.dev/golang.org/x/sys@v0.0.0-20210226181700-f36f78243c0c/unix#Exec
-	// https://pkg.go.dev/golang.org/x/sys@v0.0.0-20210226181700-f36f78243c0c/windows/mkwinsyscall
 }
 
 // Copied from https://github.com/golang/build/blob/db2c93053bcd6b944723c262828c90af91b0477a/internal/untar/untar.go
