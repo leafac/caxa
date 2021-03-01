@@ -43,7 +43,7 @@ func main() {
 		log.Fatalf("caxa stub: Failed to parse JSON in footer: %v", err)
 	}
 
-	archiveSeparator := "\n" + []byte(strings.Repeat("3", 10)) + " CAXA " + []byte(strings.Repeat("3", 10)) + "\n"
+	archiveSeparator := []byte("\n" + strings.Repeat("#", 3) + " CAXA " + strings.Repeat("#", 3) + "\n")
 	archiveIndex := bytes.Index(executable, archiveSeparator)
 	if archiveIndex == -1 {
 		log.Fatalf("caxa stub: Failed to find archive (did you append the separator when building the stub?): %v", err)

@@ -21,7 +21,7 @@
   "scripts": {
     "test": "prettier --check \"src/**/*\" --end-of-line auto && jest",
     "prepare": "tsc",
-    "stubs": "cd stubs && shx rm -f macos linux windows.exe && cross-env GOOS=darwin go build -o macos stub.go && shx echo -n \"### CAXA ###\" >> macos && cross-env GOOS=linux go build -o linux stub.go && shx echo -n \"### CAXA ###\" >> linux && cross-env GOOS=windows go build -o windows.exe stub.go && shx echo -n \"### CAXA ###\" >> windows.exe",
+    "stubs": "cd stubs && shx rm -f windows.exe macos linux && cross-env GOOS=windows go build -o windows.exe stub.go && shx echo -n \"\n### CAXA ###\n\" >> windows.exe && cross-env GOOS=darwin go build -o macos stub.go && shx echo -n \"\n### CAXA ###\n\" >> macos && cross-env GOOS=linux go build -o linux stub.go && shx echo -n \"\n### CAXA ###\n\" >> linux",
     "TODO": "npm run stubs && tar -czf - stubs/stub.go >> stubs/linux && shx echo -n \"JSON GOES HERE\" >> stubs/windows.exe && stubs/windows.exe"
   },
   "dependencies": {
