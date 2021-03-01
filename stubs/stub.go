@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -64,9 +65,12 @@ func main() {
 		}
 	}
 
-	// TODO: Extend PATH
-	// TODO: Replace {{caxa}} placeholders
-	cmd := exec.Command(footer.Command[0], append(footer.Command[1:], os.Args[1:]...)...)
+	command := make([]string, len(footer.Command))
+	caxaDirectoryPlaceholderRegexp := regexp.MustCompile(`\{\{\s*caxa\s*\}\}`)
+	for key, value := range footer.Command {
+		command[key] = caxaDirectoryPlaceholderRegexp.ReplaceAllLiteralString(value, caxaDirectory)
+	}
+	cmd := exec.Command(command[0], append(command[1:], os.Args[1:]...)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
