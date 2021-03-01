@@ -18,55 +18,58 @@ import (
 )
 
 func main() {
-	executablePath, err := os.Executable()
+	executableFile, err := os.Executable()
 	if err != nil {
-		log.Fatalf("caxa stub: Failed to find self: %v", err)
+		log.Fatalf("caxa stub: Failed to find executable: %v", err)
 	}
 
-	executable, err := os.ReadFile(executablePath)
+	executable, err := os.ReadFile(executableFile)
 	if err != nil {
-		log.Fatalf("caxa stub: Failed to read self: %v", err)
+		log.Fatalf("caxa stub: Failed to read executable: %v", err)
 	}
 
 	footerSeparator := []byte("\n")
-	footerSeparatorIndex := bytes.LastIndex(executable, footerSeparator)
-	if footerSeparatorIndex == -1 {
-		log.Fatalf("caxa stub: Failed to find footer. (Did you append an archive and a footer to the stub?) %v", err)
+	footerIndex := bytes.LastIndex(executable, footerSeparator)
+	if footerIndex == -1 {
+		log.Fatalf("caxa stub: Failed to find footer (did you append an archive and a footer to the stub?): %v", err)
 	}
-	footerString := executable[footerSeparatorIndex+len(footerSeparator):]
+	footerString := executable[footerIndex+len(footerSeparator):]
 	var footer struct {
-		Identifier string `json:"identifier"`
-		Command    struct {
-			File      string   `json:"file"`
-			Arguments []string `json:"arguments"`
-		} `json:"command"`
+		Identifier string   `json:"identifier"`
+		Command    []string `json:"command"`
 	}
 	if err := json.Unmarshal(footerString, &footer); err != nil {
 		log.Fatalf("caxa stub: Failed to parse JSON in footer: %v", err)
 	}
 
-	archiveSeparator := []byte(strings.Repeat("#", 10))
-	archiveSeparatorIndex := bytes.Index(executable, archiveSeparator)
-	if archiveSeparatorIndex == -1 {
-		log.Fatalf("caxa stub: Failed to find archive separator. This is an error in how the stub was built: %v", err)
+	archiveSeparator := "\n" + []byte(strings.Repeat("3", 10)) + " CAXA " + []byte(strings.Repeat("3", 10)) + "\n"
+	archiveIndex := bytes.Index(executable, archiveSeparator)
+	if archiveIndex == -1 {
+		log.Fatalf("caxa stub: Failed to find archive (did you append the separator when building the stub?): %v", err)
 	}
-	archive := executable[archiveSeparatorIndex+len(archiveSeparator) : footerSeparatorIndex]
+	archive := executable[archiveIndex+len(archiveSeparator) : footerIndex]
 
 	caxaDirectory := path.Join(os.TempDir(), "caxa", footer.Identifier)
 	caxaDirectoryFileInfo, err := os.Stat(caxaDirectory)
-	if err == nil || errors.Is(err, os.ErrExist) {
-		if !caxaDirectoryFileInfo.IsDir() {
-			log.Fatalf("caxa stub: caxa path already exists and it isn’t a directory: %v", err)
-		}
-	} else if err := Untar(bytes.NewReader(archive), caxaDirectory); err != nil {
-		log.Fatalf("caxa stub: Failed to uncompress archive: %v", err)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		log.Fatalf("caxa stub: Failed to find information about caxa directory: %v", err)
+	}
+	if err == nil && !caxaDirectoryFileInfo.IsDir() {
+		log.Fatalf("caxa stub: caxa path already exists and isn’t a directory: %v", err)
 	}
 
-	cmd := exec.Command(footer.Command.File, append(footer.Command.Arguments, os.Args[1:]...)...)
+	if err != nil && errors.Is(err, os.ErrNotExist) {
+		if err := Untar(bytes.NewReader(archive), caxaDirectory); err != nil {
+			log.Fatalf("caxa stub: Failed to uncompress archive: %v", err)
+		}
+	}
+
+	// TODO: Extend PATH
+	// TODO: Replace {{caxa}} placeholders
+	cmd := exec.Command(footer.Command[0], append(footer.Command[1:], os.Args[1:]...)...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	// https://stackoverflow.com/questions/10385551/get-exit-code-go
 	err = cmd.Run()
 	var exitError *exec.ExitError
 	if errors.As(err, &exitError) {
@@ -74,8 +77,6 @@ func main() {
 	} else if err != nil {
 		log.Fatalf("caxa stub: Failed to run command: %v", err)
 	}
-	// // TODO: Extend PATH
-	// Replace {{caxa}} placeholders
 }
 
 // Copied from https://github.com/golang/build/blob/db2c93053bcd6b944723c262828c90af91b0477a/internal/untar/untar.go

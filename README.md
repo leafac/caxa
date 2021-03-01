@@ -8,6 +8,8 @@
 
 <!--
 
+	// https://stackoverflow.com/questions/10385551/get-exit-code-go
+
 Might as well use exec package, because of https://github.com/golang/go/issues/30662
 
 	// https://golang.org/pkg/os/exec/
