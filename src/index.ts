@@ -7,7 +7,7 @@ import fs from "fs-extra";
 import execa from "execa";
 import archiver from "archiver";
 import cryptoRandomString from "crypto-random-string";
-import * as commander from "commander";
+import commander from "commander";
 
 export default async function caxa({
   directory,
@@ -22,7 +22,7 @@ export default async function caxa({
     !(await fs.pathExists(directory)) ||
     !(await fs.lstat(directory)).isDirectory()
   )
-    throw new Error(`Given path isn’t a directory: ‘${directory}’`);
+    throw new Error(`The path to package isn’t a directory: ‘${directory}’`);
 
   const buildDirectory = await fs.mkdtemp(
     path.join(os.tmpdir(), `caxa-build-`)
@@ -30,6 +30,8 @@ export default async function caxa({
   await fs.copy(directory, buildDirectory);
   await execa("npm", ["prune", "--production"], { cwd: buildDirectory });
   await execa("npm", ["dedupe"], { cwd: buildDirectory });
+
+  await fs.ensureDir(path.dirname(output));
 
   if (output.endsWith(".app")) {
     if (process.platform !== "darwin")
@@ -61,16 +63,12 @@ export default async function caxa({
       `#!/usr/bin/env sh\n${command
         .map(
           (part) =>
-            `"${part.replaceAll(
-              /\{\{\s*caxa\s*\}\}/g,
-              `$(dirname "$0")/app`
-            )}"`
+            `"${part.replaceAll(/\{\{\s*caxa\s*\}\}/g, `$(dirname "$0")/app`)}"`
         )
         .join(" ")}`,
       { mode: 0o755 }
     );
   } else {
-    await fs.ensureDir(path.dirname(output));
     await fs.copyFile(
       path.join(
         __dirname,

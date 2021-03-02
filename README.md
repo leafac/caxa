@@ -8,6 +8,8 @@
 
 <!--
 
+Add support for .tar.gz & .zip appendages.
+
 Talk about signing the executable.
 
 
