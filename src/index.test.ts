@@ -121,9 +121,19 @@ test("native-modules", async () => {
   await fs.remove(appDirectory);
   expect(await fs.pathExists(appDirectory)).toBe(false);
   // Uncached.
-  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot();
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
+    "@leafac/sqlite: {
+      \\"example\\": \\"caxa native modules\\"
+    }
+    sharp: 48"
+  `);
   // Cached from previous run.
-  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot();
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
+    "@leafac/sqlite: {
+      \\"example\\": \\"caxa native modules\\"
+    }
+    sharp: 48"
+  `);
 });
 
 /*
