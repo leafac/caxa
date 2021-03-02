@@ -43,32 +43,34 @@ func main() {
 		log.Fatalf("caxa stub: Failed to parse JSON in footer: %v", err)
 	}
 
-	archiveSeparator := []byte("\n" + strings.Repeat("#", 3) + " CAXA " + strings.Repeat("#", 3) + "\n")
-	archiveIndex := bytes.Index(executable, archiveSeparator)
-	if archiveIndex == -1 {
-		log.Fatalf("caxa stub: Failed to find archive (did you append the separator when building the stub?): %v", err)
-	}
-	archive := executable[archiveIndex+len(archiveSeparator) : footerIndex]
-
-	caxaDirectory := path.Join(os.TempDir(), "caxa", footer.Identifier)
-	caxaDirectoryFileInfo, err := os.Stat(caxaDirectory)
+	appDirectory := path.Join(os.TempDir(), "caxa-app-", footer.Identifier)
+	appDirectoryFileInfo, err := os.Stat(appDirectory)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		log.Fatalf("caxa stub: Failed to find information about caxa directory: %v", err)
 	}
-	if err == nil && !caxaDirectoryFileInfo.IsDir() {
+	if err == nil && !appDirectoryFileInfo.IsDir() {
 		log.Fatalf("caxa stub: caxa path already exists and isn’t a directory: %v", err)
 	}
-
+	if err == nil && appDirectoryFileInfo.IsDir() {
+		// NOOP: Directory already exists; use it as a cached version of the application and don’t extract again.
+	}
 	if err != nil && errors.Is(err, os.ErrNotExist) {
-		if err := Untar(bytes.NewReader(archive), caxaDirectory); err != nil {
+		archiveSeparator := []byte("\n" + strings.Repeat("#", 3) + " CAXA " + strings.Repeat("#", 3) + "\n")
+		archiveIndex := bytes.Index(executable, archiveSeparator)
+		if archiveIndex == -1 {
+			log.Fatalf("caxa stub: Failed to find archive (did you append the separator when building the stub?): %v", err)
+		}
+		archive := executable[archiveIndex+len(archiveSeparator) : footerIndex]
+
+		if err := Untar(bytes.NewReader(archive), appDirectory); err != nil {
 			log.Fatalf("caxa stub: Failed to uncompress archive: %v", err)
 		}
 	}
 
 	command := make([]string, len(footer.Command))
-	caxaDirectoryPlaceholderRegexp := regexp.MustCompile(`\{\{\s*caxa\s*\}\}`)
+	appDirectoryPlaceholderRegexp := regexp.MustCompile(`\{\{\s*caxa\s*\}\}`)
 	for key, value := range footer.Command {
-		command[key] = caxaDirectoryPlaceholderRegexp.ReplaceAllLiteralString(value, caxaDirectory)
+		command[key] = appDirectoryPlaceholderRegexp.ReplaceAllLiteralString(value, appDirectory)
 	}
 	cmd := exec.Command(command[0], append(command[1:], os.Args[1:]...)...)
 	cmd.Stdin = os.Stdin
