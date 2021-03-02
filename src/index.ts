@@ -30,6 +30,15 @@ export default async function caxa({
   await fs.copy(directory, buildDirectory);
   await execa("npm", ["prune", "--production"], { cwd: buildDirectory });
   await execa("npm", ["dedupe"], { cwd: buildDirectory });
+  await fs.ensureDir(path.join(buildDirectory, "node_modules/.bin"));
+  await fs.copyFile(
+    process.execPath,
+    path.join(
+      buildDirectory,
+      "node_modules/.bin",
+      path.basename(process.execPath)
+    )
+  );
 
   await fs.ensureDir(path.dirname(output));
 
@@ -41,17 +50,6 @@ export default async function caxa({
     await fs.remove(output);
     await fs.ensureDir(path.join(output, "Contents/Resources"));
     await fs.move(buildDirectory, path.join(output, "Contents/Resources/app"));
-    await fs.ensureDir(
-      path.join(output, "Contents/Resources/app/node_modules/.bin")
-    );
-    await fs.copy(
-      process.execPath,
-      path.join(
-        output,
-        "Contents/Resources/app/node_modules/.bin",
-        path.basename(process.execPath)
-      )
-    );
     await fs.ensureDir(path.join(output, "Contents/MacOS"));
     await fs.writeFile(
       path.join(output, "Contents/MacOS", path.basename(output, ".app")),
@@ -69,6 +67,8 @@ export default async function caxa({
       { mode: 0o755 }
     );
   } else {
+    if (process.platform === "win32" && !output.endsWith(".exe"))
+      throw new Error("An Windows executable must end in ‘.exe’");
     await fs.copyFile(
       path.join(
         __dirname,
@@ -88,9 +88,6 @@ export default async function caxa({
     const archiveStream = fs.createWriteStream(output, { flags: "a" });
     archive.pipe(archiveStream);
     archive.directory(buildDirectory, false);
-    archive.file(process.execPath, {
-      name: path.join("node_modules/.bin/", path.basename(process.execPath)),
-    });
     await archive.finalize();
     // FIXME: Use ‘stream/promises’ when Node.js 16 lands, because then an LTS version will have the feature: await stream.finished(archiveStream);
     await new Promise((resolve, reject) => {
@@ -120,13 +117,12 @@ if (require.main === module)
       .version(require("../package.json").version)
       .addHelpText(
         "after",
-        `Examples:
+        `
+Examples:
 
-TODO
+npx ts-node src/index.ts --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "echo-command-line-parameters"
 
-npx ts-node src/index.ts --directory "examples/echo-command-line-parameters/" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "echo-command-line-parameters"
-
-npx ts-node src/index.ts --directory "examples/echo-command-line-parameters/" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "Echo Command Line Parameters.app"
+npx ts-node src/index.ts --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "Echo Command Line Parameters.app"
 `
       )
       .action(

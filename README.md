@@ -8,6 +8,8 @@
 
 <!--
 
+You may extend PATH yourself in the command…
+
 Add support for .tar.gz & .zip appendages.
 
 Talk about signing the executable.
