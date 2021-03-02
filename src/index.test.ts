@@ -5,7 +5,7 @@ import fs from "fs-extra";
 import execa from "execa";
 import cryptoRandomString from "crypto-random-string";
 
-jest.setTimeout(60000);
+jest.setTimeout(120000);
 
 const testsDirectory = path.join(
   os.tmpdir(),
@@ -111,7 +111,12 @@ test("native-modules", async () => {
     output,
   ]);
   // Cached from build.
-  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot();
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
+    "@leafac/sqlite: {
+      \\"example\\": \\"caxa native modules\\"
+    }
+    sharp: 48"
+  `);
   expect(await fs.pathExists(appDirectory)).toBe(true);
   await fs.remove(appDirectory);
   expect(await fs.pathExists(appDirectory)).toBe(false);
