@@ -1,19 +1,29 @@
 import { jest, test, expect, beforeAll } from "@jest/globals";
-import os from "os";
+import os, { platform } from "os";
 import path from "path";
 import fs from "fs-extra";
 import execa from "execa";
+import cryptoRandomString from "crypto-random-string";
 import caxa from ".";
 
 jest.setTimeout(60000);
 
-let temporaryDirectory: string;
+const testsDirectory = path.join(
+  os.tmpdir(),
+  "caxa-tests",
+  cryptoRandomString({
+    length: 10,
+    type: "alphanumeric",
+  }).toLowerCase()
+);
 beforeAll(async () => {
-  temporaryDirectory = await fs.mkdtemp(path.join(os.tmpdir(), "caxa-tests-"));
+  await fs.ensureDir(testsDirectory);
 });
 
+if (process.platform === "win32") test("echo-command-line-parameters.exe");
+
 test("echo-command-line-parameters", async () => {
-  const output = path.join(temporaryDirectory, "echo-command-line-parameters");
+  const output = path.join(testsDirectory, "echo-command-line-parameters");
   await caxa({
     directoryToPackage: "examples/echo-command-line-parameters",
     commandToRun: `node "{{ caxa }}/index.js"`,
@@ -34,7 +44,7 @@ test("echo-command-line-parameters", async () => {
 if (os.platform() === "darwin")
   test("Echo Command-Line Parameters.app", async () => {
     const output = path.join(
-      temporaryDirectory,
+      testsDirectory,
       "Echo Command-Line Parameters.app"
     );
     await caxa({
@@ -58,7 +68,7 @@ if (os.platform() === "darwin")
   });
 
 test("native-modules", async () => {
-  const output = path.join(temporaryDirectory, "native-modules");
+  const output = path.join(testsDirectory, "native-modules");
   await execa("npm", ["install"], { cwd: "examples/native-modules" });
   await caxa({
     directoryToPackage: "examples/native-modules",
