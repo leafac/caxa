@@ -8,6 +8,134 @@
 
 <!--
 
+
+Json footer. Include build id
+Use new line to find footer and separator to find archive 
+
+
+
+- [ ] What does ncc do with native modules
+- [ ] Use npm bin
+- [ ] References on the self-extracting bash idea
+    - [ ] https://www.matteomattei.com/create-self-contained-installer-in-bash-that-extracts-archives-and-perform-actitions/
+    - [ ] https://www.linuxjournal.com/node/1005818
+    - [ ] https://community.linuxmint.com/tutorial/view/1998
+    - [ ] https://github.com/megastep/makeself
+    - [ ] http://alexradzin.blogspot.com/2015/12/creating-self-extracting-targz.html?m=1
+    - [ ] Very similar to caxa: https://www.npmjs.com/package/bashpackng
+- [ ] Improvements
+    - [ ] Make the separator between the preamble and the tar a comment
+    - [ ] npm dedupe
+    - [ ] Check that the input path exists
+- [ ] Handling the Windows situation
+    - [ ] Use a batch script or PowerShell to emulate the bash script
+        - [ ] https://www.dostips.com/forum/viewtopic.php?f=3&t=4842
+        - [ ] http://www.piclist.com/techref//dos/binbat.htm
+    - [ ] Use bash for Windows
+        - [ ] But only developers have installed that…
+    - [ ] Use tar
+        - [ ] Relatively new
+    - [ ] Self-extractor kind of tools
+        - [ ] WinZip self extractor
+        - [ ] Iexpress
+        - [ ] 7-Zip SFX Maker
+    - [ ] Use another language to compile to an actual .exe (doing what the bash script preamble does)
+        - [ ] Go
+            - [ ] Easier to use
+            - [ ] But will require people to have a Go environment for using caxa (but not the caxa’ed binary)
+        - [ ] C
+            - [ ] https://bitbucket.org/proxymlr/bsdtar/src/xtar/contrib/xtar.c
+            - [ ] zlib
+            - [ ] People already have a C toolchain to be able to compile native modules anyway
+- [ ] Alternatives
+    - [ ] Just distribute .tar.gz & .zip. We have to wrap the binary in a .tar.gz to file mode be executable anyway…
+    - [ ] How do the following projects generate their binaries?
+        - [ ] pkg
+        - [ ] nexe
+        - [ ] Electron
+- [ ] Story
+    - [ ] The original motivation was the seemingly ease of distribution of Go (which mostly holds up: Go has problems with cross-compilation of CGO, but at least it’s able to produce single binaries, and in 1.16 it’ll even be able to embed assets without third-party tools)
+    - [ ] Compiling seems to be something that people care about, because Deno has experimental support for it
+    - [ ] In node, compilation breaks down because of native extensions, which must be files
+    - [ ] Also, everything breaks down because of file permissions (chmod +x) (that’s true even of Go) (the solution is to zip/tar, but then, at that point, why bother with a single file? People will have to either chmod or unzip anyway)
+    - [ ] Zip > Tar (more familiar, works on Windows) (though file sizes are bigger)
+    - [ ] Go cant crosscompile cgo easily (its possible, just hard) (things like sqlite are cgo) (example of how you can cross-compile Go: https://github.com/karalabe/xgo) (example of project that is CGO: https://github.com/mattn/go-sqlite3)
+    - [ ] Examples of things that depend on native extensions (https://www.npmjs.com/package/windows-build-tools#examples-of-modules-supported)
+- [ ] Sometimes people Zip exes to get around antivirus (for example, as email attachments)
+- [ ] Rename the preamble to “stub”: https://en.m.wikipedia.org/wiki/Self-extracting_archive
+- [ ] https://github.com/vk-twiconnect/sfx-creator-service
+- [ ] https://stackoverflow.com/questions/27904532/how-do-i-make-a-self-extract-and-running-installer
+- [ ] https://www.npmjs.com/package/sfxbundler
+    - [ ] https://github.com/touchifyapp/sfx
+- [ ] https://github.com/AlexanderOMara/portable-executable-signature
+- [ ] https://github.com/anders-liu/pe-struct
+- [ ] https://github.com/ironSource/portable-executable
+- [ ] https://github.com/bennyhat/peid-finder
+- [ ] https://github.com/lief-project/LIEF
+- [ ] The idea in using different node versions if bad as well because of native modules
+- [ ] https://github.com/KosalaHerath/macos-installer-builder
+- [ ] Icon
+- [ ] .command / .tool extending to make terminal window open
+- [ ] Automator
+- [ ] https://mathiasbynens.be/notes/shell-script-mac-apps
+- [ ] https://stackoverflow.com/questions/281372/executing-shell-scripts-from-the-os-x-dock
+- [ ] https://gist.github.com/mathiasbynens/674099
+
+http://www.wsanchez.net/software/
+
+https://sveinbjorn.org/platypus
+- [ ] AppImage on linux?
+- [ ] Electrons bundles
+
+https://github.com/subtleGradient/tilde-bin/blob/master/appify
+
+https://github.com/subtleGradient/Appify-UI
+- [ ] Another reason why cross compiling is silly: you want to test your stuff in the different operating systems
+- [ ] @leafac/pkg
+    - [ ] Cross-compilation of binaries: https://github.com/vercel/pkg/pull/837
+    - [ ] New Node versions: https://github.com/yao-pkg/pkg-binaries
+
+https://stackoverflow.com/questions/5795446/appending-data-to-an-exe
+
+https://blog.barthe.ph/2009/02/22/change-signed-executable/
+
+https://edn.embarcadero.com/article/27979
+
+https://security.stackexchange.com/questions/77336/how-is-the-file-overlay-read-by-an-exe-virus.  The payload is called an overlay
+
+https://github.com/jason-klein/signed-nsis-exe-append-payload
+
+https://stackoverflow.com/questions/5316152/store-data-in-executable
+
+
+Techniques to find payload : separator; footer; hard coded offset
+
+
+Appending to binaries works on windows as Linux. How about Apple? (May be unnecessary because of application bundles...
+
+https://www.codeproject.com/Articles/7053/Pure-WIN32-Self-Extract-EXE-Builder
+
+
+https://zlib.net
+
+https://opensource.apple.com/source/libarchive/libarchive-29/libarchive/examples/untar.c.auto.html
+
+https://github.com/calccrypto/tar
+
+https://gist.github.com/mimoo/25fc9716e0f1353791f5908f94d6e726
+
+https://www.tutorialspoint.com/c_standard_library/c_function_system.htm
+
+http://www.libarchive.org
+
+https://repo.or.cz/libtar.git
+
+https://github.com/libarchive/libarchive/wiki/LibarchiveFormats
+
+
+Insist on .exe on Windows 
+
+
 Document how you could cross-compile yourself by downloading node. The same applies to building for different versions of node.
 Document how you could know if you’re in the caxa (have a different entry point).
 Document how you probably want to zip the outputs to keep the executable permissions right.
