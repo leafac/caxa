@@ -106,18 +106,32 @@ export default async function caxa({
 if (require.main === module)
   (async () => {
     await commander.program
-      .requiredOption("-d, --directory <directory>")
-      .requiredOption("-c, --command <command-and-arguments...>")
-      .requiredOption("-o, --output <output>")
+      .requiredOption(
+        "-d, --directory <directory>",
+        "The directory to package."
+      )
+      .requiredOption(
+        "-c, --command <command-and-arguments...>",
+        "The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute. The ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument."
+      )
+      .requiredOption(
+        "-o, --output <output>",
+        "The path at which to produce the executable. Overwrites existing files/folders. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS Application Bundle."
+      )
       .version(require("../package.json").version)
       .addHelpText(
         "after",
         `
 Examples:
 
-npx ts-node src/index.ts --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "echo-command-line-parameters"
+  Windows:
+  > caxa --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "echo-command-line-parameters.exe"
 
-npx ts-node src/index.ts --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "Echo Command Line Parameters.app"
+  macOS/Linux:
+  $ caxa --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "echo-command-line-parameters"
+
+  macOS (Application Bundle):
+  $ caxa --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "Echo Command Line Parameters.app"
 `
       )
       .action(
