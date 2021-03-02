@@ -154,6 +154,18 @@ export default async function caxa({
   // }
   // if (removeBuildDirectory) await fs.remove(buildDirectory);
   // return buildDirectory;
+
+//   if (process.platform !== "win32")
+//   package.append(
+//     `#!/usr/bin/env sh
+// "$(dirname "$0")/app/node_modules/.bin/node" "$(dirname "$0")/app/lib/index.js" "$(dirname "$0")/configuration.js"
+// `,
+//     { name: "courselore/courselore", mode: 0o755 }
+//   );
+// else
+//   package.append(`"src\\node_modules\\.bin\\node.exe" "src\\lib\\index.js"`, {
+//     name: "courselore/courselore.cmd",
+//   });
 }
 
 if (require.main === module)
