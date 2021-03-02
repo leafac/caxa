@@ -70,6 +70,7 @@ export default async function caxa({
       { mode: 0o755 }
     );
   } else {
+    await fs.ensureDir(path.dirname(output));
     await fs.copyFile(
       path.join(
         __dirname,
