@@ -8,6 +8,8 @@
 
 <!--
 
+Talk about signing the executable.
+
 
 Json footer. Include build id
 Use new line to find footer and separator to find archive 

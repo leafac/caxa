@@ -55,6 +55,7 @@ func main() {
 		// NOOP: Directory already exists; use it as a cached version of the application and don’t extract again.
 	}
 	if err != nil && errors.Is(err, os.ErrNotExist) {
+		// The use of ‘Repeat’ below is significant because we don’t want the separator to appear literally in the compiled stub.
 		archiveSeparator := []byte("\n" + strings.Repeat("#", 3) + " CAXA " + strings.Repeat("#", 3) + "\n")
 		archiveIndex := bytes.Index(executable, archiveSeparator)
 		if archiveIndex == -1 {
@@ -67,16 +68,17 @@ func main() {
 		}
 	}
 
-	command := make([]string, len(footer.Command))
+	expandedCommand := make([]string, len(footer.Command))
 	appDirectoryPlaceholderRegexp := regexp.MustCompile(`\{\{\s*caxa\s*\}\}`)
-	for key, value := range footer.Command {
-		command[key] = appDirectoryPlaceholderRegexp.ReplaceAllLiteralString(value, appDirectory)
+	for key, commandPart := range footer.Command {
+		expandedCommand[key] = appDirectoryPlaceholderRegexp.ReplaceAllLiteralString(commandPart, appDirectory)
 	}
-	cmd := exec.Command(command[0], append(command[1:], os.Args[1:]...)...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	err = cmd.Run()
+
+	command := exec.Command(expandedCommand[0], append(expandedCommand[1:], os.Args[1:]...)...)
+	command.Stdin = os.Stdin
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+	err = command.Run()
 	var exitError *exec.ExitError
 	if errors.As(err, &exitError) {
 		os.Exit(exitError.ExitCode())
