@@ -22,7 +22,7 @@ export default async function caxa({
     !(await fs.pathExists(directory)) ||
     !(await fs.lstat(directory)).isDirectory()
   )
-    throw new Error(`The path to package isn’t a directory: ‘${directory}’`);
+    throw new Error(`The path to package isn’t a directory: ‘${directory}’.`);
 
   const identifier = path.join(
     path.basename(path.resolve(directory)),
@@ -73,18 +73,18 @@ export default async function caxa({
     );
   } else {
     if (process.platform === "win32" && !output.endsWith(".exe"))
-      throw new Error("An Windows executable must end in ‘.exe’");
+      throw new Error("An Windows executable must end in ‘.exe’.");
     await fs.copyFile(
       path.join(
         __dirname,
         "../stubs",
         ({
-          win32: "windows",
+          win32: "windows.exe",
           darwin: "macos",
           linux: "linux",
         } as { [platform: string]: string })[process.platform] ??
           (() => {
-            throw new Error("caxa isn’t supported on this platform.");
+            throw new Error("caxa isn’t supported on this operating system.");
           })()
       ),
       output
