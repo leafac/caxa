@@ -15,26 +15,20 @@
   "license": "MIT",
   "bugs": "https://github.com/leafac/caxa/issues",
   "homepage": "https://github.com/leafac/caxa#readme",
-  "publishConfig": {
-    "access": "public"
-  },
   "scripts": {
     "test": "prettier --check \"src/**/*\" --end-of-line auto && jest",
     "prepare": "tsc",
-    "stubs": "cd stubs && shx rm -f windows.exe macos linux && cross-env GOOS=windows go build -o windows.exe stub.go && shx echo -n \"\n### CAXA ###\n\" >> windows.exe && cross-env GOOS=darwin go build -o macos stub.go && shx echo -n \"\n### CAXA ###\n\" >> macos && cross-env GOOS=linux go build -o linux stub.go && shx echo -n \"\n### CAXA ###\n\" >> linux",
-    "TODO": "npm run stubs && tar -czf - stubs/stub.go >> stubs/linux && shx echo -n \"JSON GOES HERE\" >> stubs/windows.exe && stubs/windows.exe"
+    "stubs": "cd stubs && shx rm -f windows.exe macos linux && cross-env GOOS=windows go build -o windows.exe stub.go && shx echo -n \"\n### CAXA ###\n\" >> windows.exe && cross-env GOOS=darwin go build -o macos stub.go && shx echo -n \"\n### CAXA ###\n\" >> macos && cross-env GOOS=linux go build -o linux stub.go && shx echo -n \"\n### CAXA ###\n\" >> linux"
   },
   "dependencies": {
     "archiver": "^5.2.0",
     "commander": "^7.0.0",
     "crypto-random-string": "^3.3.0",
-    "dedent": "^0.7.0",
     "execa": "^4.1.0",
     "fs-extra": "^9.1.0"
   },
   "devDependencies": {
     "@types/archiver": "^5.1.0",
-    "@types/dedent": "^0.7.0",
     "@types/fs-extra": "^9.0.7",
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.26",
