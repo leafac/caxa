@@ -53,17 +53,17 @@ export default async function caxa({
     await fs.ensureDir(path.join(output, "Contents/MacOS"));
     await fs.writeFile(
       path.join(output, "Contents/MacOS", path.basename(output, ".app")),
-      `#!/usr/bin/env sh\nopen "$(dirname "$0")/entry"`,
+      `#!/usr/bin/env sh\nopen "$(dirname "$0")/../Resources/start"`,
       { mode: 0o755 }
     );
     await fs.writeFile(
-      path.join(output, "Contents/MacOS/entry"),
+      path.join(output, "Contents/Resources/start"),
       `#!/usr/bin/env sh\n${command
         .map(
           (part) =>
             `"${part.replaceAll(
               /\{\{\s*caxa\s*\}\}/g,
-              `$(dirname "$0")/../Resources/app`
+              `$(dirname "$0")/app`
             )}"`
         )
         .join(" ")}`,
