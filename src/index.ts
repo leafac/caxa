@@ -24,9 +24,14 @@ export default async function caxa({
   )
     throw new Error(`The path to package isn’t a directory: ‘${directory}’`);
 
-  const buildDirectory = await fs.mkdtemp(
-    path.join(os.tmpdir(), `caxa-build-`)
+  const identifier = path.join(
+    path.basename(path.resolve(directory)),
+    cryptoRandomString({
+      length: 10,
+      type: "alphanumeric",
+    }).toLowerCase()
   );
+  const buildDirectory = path.join(os.tmpdir(), "caxa", identifier);
   await fs.copy(directory, buildDirectory);
   await execa("npm", ["prune", "--production"], { cwd: buildDirectory });
   await execa("npm", ["dedupe"], { cwd: buildDirectory });
@@ -94,17 +99,7 @@ export default async function caxa({
       archiveStream.on("finish", resolve);
       archiveStream.on("error", reject);
     });
-    await fs.appendFile(
-      output,
-      "\n" +
-        JSON.stringify({
-          identifier: cryptoRandomString({
-            length: 10,
-            type: "alphanumeric",
-          }).toLowerCase(),
-          command,
-        })
-    );
+    await fs.appendFile(output, "\n" + JSON.stringify({ identifier, command }));
   }
 }
 

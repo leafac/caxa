@@ -43,7 +43,7 @@ func main() {
 		log.Fatalf("caxa stub: Failed to parse JSON in footer: %v", err)
 	}
 
-	appDirectory := path.Join(os.TempDir(), "caxa-app-", footer.Identifier)
+	appDirectory := path.Join(os.TempDir(), "caxa", footer.Identifier)
 	appDirectoryFileInfo, err := os.Stat(appDirectory)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		log.Fatalf("caxa stub: Failed to find information about caxa directory: %v", err)
