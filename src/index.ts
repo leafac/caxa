@@ -26,10 +26,7 @@ export default async function caxa({
 
   const identifier = path.join(
     path.basename(path.resolve(directory)),
-    cryptoRandomString({
-      length: 10,
-      type: "alphanumeric",
-    }).toLowerCase()
+    cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
   const appDirectory = path.join(os.tmpdir(), "caxa", identifier);
   await fs.copy(directory, appDirectory);

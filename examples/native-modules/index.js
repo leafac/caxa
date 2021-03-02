@@ -1,11 +1,15 @@
 (async () => {
   const os = require("os");
   const path = require("path");
-  const fs = require("fs/promises");
+  const fs = require("fs-extra");
+  const cryptoRandomString = require("crypto-random-string");
 
-  const temporaryDirectory = await fs.mkdtemp(
-    path.join(os.tmpdir(), "caxa-example-native-modules-")
+  const temporaryDirectory = path.join(
+    os.tmpdir(),
+    "caxa-examples/native-modules",
+    cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
+  await fs.ensureDir(temporaryDirectory);
 
   const { Database, sql } = require("@leafac/sqlite");
   const database = new Database(path.join(temporaryDirectory, "database.db"));

@@ -10,10 +10,7 @@ jest.setTimeout(120000);
 const testsDirectory = path.join(
   os.tmpdir(),
   "caxa-tests",
-  cryptoRandomString({
-    length: 10,
-    type: "alphanumeric",
-  }).toLowerCase()
+  cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
 );
 beforeAll(async () => {
   await fs.ensureDir(testsDirectory);
