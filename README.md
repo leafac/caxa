@@ -8,6 +8,10 @@
 
 <!--
 
+Document how you could cross-compile yourself by downloading node.
+Document how you could know if you’re in the caxa (have a different entry point).
+Document how you probably want to zip the outputs to keep the executable permissions right.
+
 	// https://stackoverflow.com/questions/10385551/get-exit-code-go
 
 Might as well use exec package, because of https://github.com/golang/go/issues/30662

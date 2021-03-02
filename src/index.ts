@@ -102,7 +102,10 @@ export default async function caxa({
       output,
       "\n" +
         JSON.stringify({
-          identifier: cryptoRandomString({ length: 10, type: "alphanumeric" }),
+          identifier: cryptoRandomString({
+            length: 10,
+            type: "alphanumeric",
+          }).toLowerCase(),
           command,
         })
     );
@@ -121,6 +124,10 @@ if (require.main === module)
         `Examples:
 
 TODO
+
+npx ts-node src/index.ts --directory "examples/echo-command-line-parameters/" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "echo-command-line-parameters"
+
+npx ts-node src/index.ts --directory "examples/echo-command-line-parameters/" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "Echo Command Line Parameters.app"
 `
       )
       .action(
