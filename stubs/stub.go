@@ -87,7 +87,7 @@ func main() {
 	}
 }
 
-// Copied from https://github.com/golang/build/blob/db2c93053bcd6b944723c262828c90af91b0477a/internal/untar/untar.go
+// Adapted from https://github.com/golang/build/blob/db2c93053bcd6b944723c262828c90af91b0477a/internal/untar/untar.go and https://github.com/mholt/archiver/tree/v3.5.0
 
 // Copyright 2017 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style
@@ -206,6 +206,24 @@ func untar(r io.Reader, dir string) (err error) {
 				return err
 			}
 			madeDir[abs] = true
+		case f.Typeflag == tar.TypeSymlink:
+			// leafac: Added by me to support symbolic links. Adapted from https://github.com/mholt/archiver/blob/v3.5.0/tar.go#L254-L276 and https://github.com/mholt/archiver/blob/v3.5.0/archiver.go#L313-L332
+			err := os.MkdirAll(filepath.Dir(abs), 0755)
+			if err != nil {
+				return fmt.Errorf("%s: making directory for file: %v", abs, err)
+			}
+			_, err = os.Lstat(abs)
+			if err == nil {
+				err = os.Remove(abs)
+				if err != nil {
+					return fmt.Errorf("%s: failed to unlink: %+v", abs, err)
+				}
+			}
+
+			err = os.Symlink(f.Linkname, abs)
+			if err != nil {
+				return fmt.Errorf("%s: making symbolic link for: %v", abs, err)
+			}
 		default:
 			return fmt.Errorf("tar file entry %s contained unsupported file type %v", f.Name, mode)
 		}
