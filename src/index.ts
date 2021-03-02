@@ -31,15 +31,15 @@ export default async function caxa({
       type: "alphanumeric",
     }).toLowerCase()
   );
-  const buildDirectory = path.join(os.tmpdir(), "caxa", identifier);
-  await fs.copy(directory, buildDirectory);
-  await execa("npm", ["prune", "--production"], { cwd: buildDirectory });
-  await execa("npm", ["dedupe"], { cwd: buildDirectory });
-  await fs.ensureDir(path.join(buildDirectory, "node_modules/.bin"));
+  const appDirectory = path.join(os.tmpdir(), "caxa", identifier);
+  await fs.copy(directory, appDirectory);
+  await execa("npm", ["prune", "--production"], { cwd: appDirectory });
+  await execa("npm", ["dedupe"], { cwd: appDirectory });
+  await fs.ensureDir(path.join(appDirectory, "node_modules/.bin"));
   await fs.copyFile(
     process.execPath,
     path.join(
-      buildDirectory,
+      appDirectory,
       "node_modules/.bin",
       path.basename(process.execPath)
     )
@@ -54,7 +54,7 @@ export default async function caxa({
       );
     await fs.remove(output);
     await fs.ensureDir(path.join(output, "Contents/Resources"));
-    await fs.move(buildDirectory, path.join(output, "Contents/Resources/app"));
+    await fs.move(appDirectory, path.join(output, "Contents/Resources/app"));
     await fs.ensureDir(path.join(output, "Contents/MacOS"));
     await fs.writeFile(
       path.join(output, "Contents/MacOS", path.basename(output, ".app")),
@@ -92,7 +92,7 @@ export default async function caxa({
     const archive = archiver("tar", { gzip: true });
     const archiveStream = fs.createWriteStream(output, { flags: "a" });
     archive.pipe(archiveStream);
-    archive.directory(buildDirectory, false);
+    archive.directory(appDirectory, false);
     await archive.finalize();
     // FIXME: Use ‘stream/promises’ when Node.js 16 lands, because then an LTS version will have the feature: await stream.finished(archiveStream);
     await new Promise((resolve, reject) => {

@@ -1,10 +1,9 @@
-import { jest, test, expect, beforeAll } from "@jest/globals";
-import os, { platform } from "os";
+import { jest, beforeAll, test, expect } from "@jest/globals";
+import os from "os";
 import path from "path";
 import fs from "fs-extra";
 import execa from "execa";
 import cryptoRandomString from "crypto-random-string";
-import caxa from ".";
 
 jest.setTimeout(60000);
 
@@ -20,8 +19,109 @@ beforeAll(async () => {
   await fs.ensureDir(testsDirectory);
 });
 
-if (process.platform === "win32") test("echo-command-line-parameters.exe");
+test("echo-command-line-parameters", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters${process.platform === "win32" ? ".exe" : ""}`
+  );
+  const appDirectory = path.join(
+    os.tmpdir(),
+    "caxa",
+    "echo-command-line-parameters"
+  );
+  await execa("npx", [
+    "ts-node",
+    "src/index.ts",
+    "--directory",
+    "examples/echo-command-line-parameters",
+    "--command",
+    "{{caxa}}/node_modules/.bin/node",
+    "{{caxa}}/index.js",
+    "some",
+    "embedded arguments",
+    "--output",
+    output,
+  ]);
+  // Cached from build.
+  expect(
+    (
+      await execa(output, ["and", "some arguments passed on the call"], {
+        all: true,
+      })
+    ).all
+  ).toMatchInlineSnapshot(`
+    "[
+      \\"some\\",
+      \\"embedded arguments\\",
+      \\"and\\",
+      \\"some arguments passed on the call\\"
+    ]"
+  `);
+  expect(await fs.pathExists(appDirectory)).toBe(true);
+  await fs.remove(appDirectory);
+  expect(await fs.pathExists(appDirectory)).toBe(false);
+  // Uncached.
+  expect(
+    (
+      await execa(output, ["and", "some arguments passed on the call"], {
+        all: true,
+      })
+    ).all
+  ).toMatchInlineSnapshot(`
+    "[
+      \\"some\\",
+      \\"embedded arguments\\",
+      \\"and\\",
+      \\"some arguments passed on the call\\"
+    ]"
+  `);
+  // Cached from previous run.
+  expect(
+    (
+      await execa(output, ["and", "some arguments passed on the call"], {
+        all: true,
+      })
+    ).all
+  ).toMatchInlineSnapshot(`
+    "[
+      \\"some\\",
+      \\"embedded arguments\\",
+      \\"and\\",
+      \\"some arguments passed on the call\\"
+    ]"
+  `);
+});
 
+test("native-modules", async () => {
+  const output = path.join(
+    testsDirectory,
+    `native-modules${process.platform === "win32" ? ".exe" : ""}`
+  );
+  const appDirectory = path.join(os.tmpdir(), "caxa", "native-modules");
+  await execa("npm", ["install"], { cwd: "examples/native-modules" });
+  await execa("npx", [
+    "ts-node",
+    "src/index.ts",
+    "--directory",
+    "examples/native-modules",
+    "--command",
+    "{{caxa}}/node_modules/.bin/node",
+    "{{caxa}}/index.js",
+    "--output",
+    output,
+  ]);
+  // Cached from build.
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot();
+  expect(await fs.pathExists(appDirectory)).toBe(true);
+  await fs.remove(appDirectory);
+  expect(await fs.pathExists(appDirectory)).toBe(false);
+  // Uncached.
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot();
+  // Cached from previous run.
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot();
+});
+
+/*
 test("echo-command-line-parameters", async () => {
   const output = path.join(testsDirectory, "echo-command-line-parameters");
   await caxa({
@@ -83,3 +183,4 @@ test("native-modules", async () => {
           sharp: 48"
         `);
 });
+*/
