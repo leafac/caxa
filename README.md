@@ -11,6 +11,7 @@
 Document how you could cross-compile yourself by downloading node. The same applies to building for different versions of node.
 Document how you could know if you’re in the caxa (have a different entry point).
 Document how you probably want to zip the outputs to keep the executable permissions right.
+Do something for app icons.
 
 	// https://stackoverflow.com/questions/10385551/get-exit-code-go
 
