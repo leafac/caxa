@@ -55,7 +55,7 @@ func main() {
 		// NOOP: Directory already exists; use it as a cached version of the application and don’t extract again.
 	}
 	if err != nil && errors.Is(err, os.ErrNotExist) {
-		// The use of ‘Repeat’ below is significant because we don’t want the separator to appear literally in the compiled stub.
+		// The use of ‘Repeat’ below is lower even further the chance that the separator will appear literally in the compiled stub.
 		archiveSeparator := []byte("\n" + strings.Repeat("#", 3) + " CAXA " + strings.Repeat("#", 3) + "\n")
 		archiveIndex := bytes.Index(executable, archiveSeparator)
 		if archiveIndex == -1 {
