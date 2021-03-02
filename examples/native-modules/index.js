@@ -9,14 +9,14 @@
 
   const { Database, sql } = require("@leafac/sqlite");
   const database = new Database(path.join(temporaryDirectory, "database.db"));
-  database.execute(sql`CREATE TABLE caxaNativeModulesExample (example TEXT);`);
+  database.execute(sql`CREATE TABLE caxaExampleNativeModules (example TEXT);`);
   database.run(
-    sql`INSERT INTO caxaNativeModulesExample (example) VALUES (${"caxa native modules"})`
+    sql`INSERT INTO caxaExampleNativeModules (example) VALUES (${"caxa native modules"})`
   );
   console.log(
     "@leafac/sqlite:",
     JSON.stringify(
-      database.get(sql`SELECT * FROM caxaNativeModulesExample`),
+      database.get(sql`SELECT example FROM caxaExampleNativeModules`),
       undefined,
       2
     )
