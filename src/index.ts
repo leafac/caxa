@@ -63,7 +63,7 @@ export default async function caxa({
       `#!/usr/bin/env sh\n${command
         .map(
           (part) =>
-            `"${part.replaceAll(/\{\{\s*caxa\s*\}\}/g, `$(dirname "$0")/app`)}"`
+            `"${part.replace(/\{\{\s*caxa\s*\}\}/g, `$(dirname "$0")/app`)}"`
         )
         .join(" ")}`,
       { mode: 0o755 }
