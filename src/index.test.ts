@@ -5,7 +5,7 @@ import fs from "fs-extra";
 import execa from "execa";
 import cryptoRandomString from "crypto-random-string";
 
-jest.setTimeout(120000);
+jest.setTimeout(300_000);
 
 const testsDirectory = path.join(
   os.tmpdir(),
