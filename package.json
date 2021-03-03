@@ -1,9 +1,11 @@
 {
   "name": "caxa",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Package Node.js applications into executable binaries",
   "main": "lib/index.js",
-  "bin": "lib/index.js",
+  "bin": {
+    "caxa": "lib/index.js"
+  },
   "types": "lib/index.d.ts",
   "repository": "leafac/caxa",
   "keywords": [
