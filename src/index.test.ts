@@ -89,6 +89,42 @@ test("echo-command-line-parameters", async () => {
   `);
 });
 
+if (process.platform === "darwin")
+  test("Echo Command Line Parameters.app", async () => {
+    const output = path.join(
+      testsDirectory,
+      "Echo Command Line Parameters.app"
+    );
+    await execa("npx", [
+      "ts-node",
+      "src/index.ts",
+      "--directory",
+      "examples/echo-command-line-parameters",
+      "--command",
+      "{{caxa}}/node_modules/.bin/node",
+      "{{caxa}}/index.js",
+      "some",
+      "embedded arguments",
+      "--output",
+      output,
+    ]);
+    console.log(
+      `Test the macOS Application Bundle (.app) manually:\n$ open -a "${output}"`
+    );
+    expect(
+      (
+        await execa(path.join(output, "/Contents/Resources/start"), {
+          all: true,
+        })
+      ).all
+    ).toMatchInlineSnapshot(`
+      "[
+        \\"some\\",
+        \\"embedded arguments\\"
+      ]"
+    `);
+  });
+
 test("native-modules", async () => {
   const output = path.join(
     testsDirectory,
@@ -132,67 +168,3 @@ test("native-modules", async () => {
     sharp: 48"
   `);
 });
-
-/*
-test("echo-command-line-parameters", async () => {
-  const output = path.join(testsDirectory, "echo-command-line-parameters");
-  await caxa({
-    directoryToPackage: "examples/echo-command-line-parameters",
-    commandToRun: `node "{{ caxa }}/index.js"`,
-    output,
-    removeBuildDirectory: true,
-  });
-  await expect(
-    (await execa(output, ["parameter-without-spaces", "parameter with spaces"]))
-      .stdout
-  ).toMatchInlineSnapshot(`
-          "[
-            \\"parameter-without-spaces\\",
-            \\"parameter with spaces\\"
-          ]"
-        `);
-});
-
-if (os.platform() === "darwin")
-  test("Echo Command-Line Parameters.app", async () => {
-    const output = path.join(
-      testsDirectory,
-      "Echo Command-Line Parameters.app"
-    );
-    await caxa({
-      directoryToPackage: "examples/echo-command-line-parameters",
-      commandToRun: `node "{{ caxa }}/index.js"`,
-      output,
-    });
-    await expect(
-      (
-        await execa(
-          path.join(output, "Contents/MacOS/Echo Command-Line Parameters"),
-          ["parameter-without-spaces", "parameter with spaces"]
-        )
-      ).stdout
-    ).toMatchInlineSnapshot(`
-          "[
-            \\"parameter-without-spaces\\",
-            \\"parameter with spaces\\"
-          ]"
-        `);
-  });
-
-test("native-modules", async () => {
-  const output = path.join(testsDirectory, "native-modules");
-  await execa("npm", ["install"], { cwd: "examples/native-modules" });
-  await caxa({
-    directoryToPackage: "examples/native-modules",
-    commandToRun: `node "{{ caxa }}/index.js"`,
-    output,
-    removeBuildDirectory: true,
-  });
-  await expect((await execa(output)).stdout).toMatchInlineSnapshot(`
-          "@leafac/sqlite: {
-            \\"example\\": \\"caxa native modules\\"
-          }
-          sharp: 48"
-        `);
-});
-*/
