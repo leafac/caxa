@@ -25,7 +25,7 @@ export default async function caxa({
     throw new Error(`The path to package isn’t a directory: ‘${directory}’.`);
 
   const identifier = path.join(
-    path.basename(path.resolve(directory)),
+    path.basename(path.resolve(output)),
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
   const appDirectory = path.join(os.tmpdir(), "caxa", identifier);
@@ -53,13 +53,14 @@ export default async function caxa({
     await fs.ensureDir(path.join(output, "Contents/Resources"));
     await fs.move(appDirectory, path.join(output, "Contents/Resources/app"));
     await fs.ensureDir(path.join(output, "Contents/MacOS"));
+    const name = path.basename(output, ".app");
     await fs.writeFile(
-      path.join(output, "Contents/MacOS", path.basename(output, ".app")),
-      `#!/usr/bin/env sh\nopen "$(dirname "$0")/../Resources/start"`,
+      path.join(output, "Contents/MacOS", name),
+      `#!/usr/bin/env sh\nopen "$(dirname "$0")/../Resources/${name}"`,
       { mode: 0o755 }
     );
     await fs.writeFile(
-      path.join(output, "Contents/Resources/start"),
+      path.join(output, "Contents/Resources", name),
       `#!/usr/bin/env sh\n${command
         .map(
           (part) =>

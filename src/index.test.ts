@@ -111,9 +111,12 @@ if (process.platform === "darwin")
     );
     expect(
       (
-        await execa(path.join(output, "/Contents/Resources/start"), {
-          all: true,
-        })
+        await execa(
+          path.join(output, "/Contents/Resources/Echo Command Line Parameters"),
+          {
+            all: true,
+          }
+        )
       ).all
     ).toMatchInlineSnapshot(`
       "[
