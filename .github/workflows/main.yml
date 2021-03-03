@@ -3,13 +3,8 @@ jobs:
   test:
     strategy:
       matrix:
-        os:
-          - windows
-          - macos
-          - ubuntu
-        node-version:
-          - 14
-          - 15
+        os: [windows, macos, ubuntu]
+        node-version: [14, 15]
     runs-on: ${{ matrix.os }}-latest
     steps:
       - uses: actions/checkout@v2
