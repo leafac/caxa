@@ -26,8 +26,7 @@ test("echo-command-line-parameters", async () => {
     "caxa",
     "echo-command-line-parameters"
   );
-  await execa("npx", [
-    "ts-node",
+  await execa("ts-node", [
     "src/index.ts",
     "--directory",
     "examples/echo-command-line-parameters",
@@ -95,8 +94,7 @@ if (process.platform === "darwin")
       testsDirectory,
       "Echo Command Line Parameters.app"
     );
-    await execa("npx", [
-      "ts-node",
+    await execa("ts-node", [
       "src/index.ts",
       "--directory",
       "examples/echo-command-line-parameters",
@@ -132,8 +130,7 @@ test("native-modules", async () => {
   );
   const appDirectory = path.join(os.tmpdir(), "caxa", "native-modules");
   await execa("npm", ["install"], { cwd: "examples/native-modules" });
-  await execa("npx", [
-    "ts-node",
+  await execa("ts-node", [
     "src/index.ts",
     "--directory",
     "examples/native-modules",
