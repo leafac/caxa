@@ -35,7 +35,7 @@
 - Doesn’t patch the Node.js source code.
 - Doesn’t build Node.js from source.
 - Doesn’t support cross-compilation (for example, building a Windows executable from a macOS development machine).
-- Doesn’t support packaging with a Node.js version different from the one that’s running caxa.
+- Doesn’t support packaging with a Node.js version different from the one that’s running caxa (for example, bundling Node.js 15 while running caxa with Node.js 14).
 - Doesn’t hide your JavaScript source code in any way.
 
 ### Installation
@@ -49,11 +49,11 @@ $ npm install --save-dev caxa
 #### Prepare the Project for Packaging
 
 - Install any dependencies with `npm install` or `npm ci`.
-- Build. For example, compile TypeScript with `tsc`, bundle with webpack, and whatever else you need to get the project ready to start. Typically this is the kind of thing that goes into an [npm `prepare` script](https://docs.npmjs.com/cli/v7/using-npm/scripts#prepare-and-prepublish), so the `npm ci` from the previous point may have taken care of this already.
+- Build. For example, compile TypeScript with `tsc`, bundle with webpack, and whatever else you need to get the project ready to start. Typically this is the kind of thing that goes into an [npm `prepare` script](https://docs.npmjs.com/cli/v7/using-npm/scripts#prepare-and-prepublish), so the `npm ci` from the previous point may already have taken care of this.
 - If there are files that shouldn’t be in the package, remove them from the directory. For example, you may wish to remove the `.git` directory.
-- It’s recommended that you run this on a Continuous Integration server. (GitHub Actions, for example, does a shallow fetch of the repository, so removing the `.git` directory becomes superfluous.)
+- It’s recommended that you run caxa on a Continuous Integration server. (GitHub Actions, for example, does a shallow fetch of the repository, so removing the `.git` directory becomes unnecessary.)
 
-#### Call caxa
+#### Call caxa from the Command Line
 
 ```console
 $ npx caxa --help
@@ -79,11 +79,11 @@ Examples:
   $ caxa --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "Echo Command Line Parameters.app"
 ```
 
-Here’s [a real-world example of using caxa](https://github.com/courselore/courselore/blob/master/.github/workflows/main.yml). This example includes packaging for Windows, macOS, and Linux; distributing tags with GitHub Releases Assets; distributing Insiders Builds for every push with GitHub Actions Artifacts; and deploying a binary to a server with `rsync` (and publishing an npm package as well, but that’s out of the scope).
+Here’s [a real-world example of using caxa](https://github.com/courselore/courselore/blob/b904abff641b744a8e0b6105aeaab0dc2d8deb2b/.github/workflows/main.yml). This example includes packaging for Windows, macOS, and Linux; distributing tags with GitHub Releases Assets; distributing Insiders Builds for every push with GitHub Actions Artifacts; and deploying a binary to a server with `rsync` (and publishing an npm package as well, but that’s beyond the scope of caxa).
 
 #### Call caxa from TypeScript/JavaScript
 
-For example:
+Instead of calling caxa from the command line, you may prefer to write a program that builds your application, for example:
 
 ```typescript
 import caxa from "caxa";
@@ -111,14 +111,18 @@ You may need to inspect `process.platform` to determine in which operating syste
 If you wish to run a command that isn’t `node`, for example, `ts-node`, you may do so by extending the `PATH`. For example, you may run the following on macOS/Linux:
 
 ```console
-$ caxa --directory "examples/echo-command-line-parameters" --command "env" "PATH={{caxa}}/node_modules/.bin/:\$PATH" "ts-node" "{{caxa}}/index.js" "some" "embedded arguments" --output "echo-command-line-parameters"
+$ caxa --directory <directory> --command "env" "PATH={{caxa}}/node_modules/.bin/:\$PATH" "ts-node" "{{caxa}}/index.ts" --output <output>
 ```
 
 #### Preserving the Executable Mode of the Binary
 
-This is only an issue on macOS/Linux. In these operating systems a binary must have the executable mode enabled in order to run. Here’s what you may do when you distribute the binary to ensure that the file mode is preserved:
+This is only an issue on macOS/Linux. In these operating systems a binary must have the executable mode enabled in order to run. You may check the mode from the command line with `ls -l`: on an output that reads like `-rwxr-xr-x [...]/bin/node`, the `x`s represent that the file is executable.
 
-1. Create a tarball or zip. macOS/Linux (most distributions, anyway) come with software to uncompress tarballs and zips. The user can just double-click on the file and it’ll mostly work. You may generate a tarball with, for example, the following command:
+Here’s what you may do when you distribute the binary to ensure that the file mode is preserved:
+
+1. Create a tarball or zip. The file mode is preserved through compression/decompression, and macOS/Linux (most distributions, anyway) come out of the box with software to uncompress tarballs and zips—the user can just double-click on the file.
+
+   You may generate a tarball with, for example, the following command:
 
    ```console
    $ tar -czf <caxa-output>.tgz <caxa-output>
@@ -126,19 +130,19 @@ This is only an issue on macOS/Linux. In these operating systems a binary must h
 
    **Fun fact:** Windows 10 also comes with the `tar` executable, so the command above works on Windows as well. Unfortunately the File Explorer on Windows doesn’t support uncompressing the `.tgz` with a double-click (it supports uncompressing `.zip`, however). Fortunately, Windows doesn’t have issues with file modes to begin with (it simply looks for the `.exe` extension) so distributing the caxa output directly is appropriate.
 
-2. Tell your users to run the following command after downloading:
+2. Fix the file mode after downloading. Tell your users to run the following command:
 
    ```console
-   $ chmod +x <caxa-output>
+   $ chmod +x <path-to-downloaded-application>
    ```
 
    In some contexts this may make more sense, but it requires your users to use the command line.
 
 #### Detect Whether the Application Is Running from the Packaged Version
 
-caxa doesn’t do anything special to your application, so there’s no intrinsic way of telling whether the application is running from the packaged version. It’s part of caxa’s ethos of being as out of the way as possible. Also, I consider it to be a bad practice: an application that is so self-aware is more difficult to test and reason about.
+caxa doesn’t do anything special to your application, so there’s no built-in way of telling whether the application is running from the packaged version. It’s part of caxa’s ethos of being as out of the way as possible. Also, I consider it to be a bad practice: an application that is so self-aware is more difficult to reason about and test.
 
-That, if you really need to know whether the application is running from the packaged versions, here are some possible workarounds in increasing levels of badness:
+That said, if you really need to know whether the application is running from the packaged versions, here are some possible workarounds in increasing levels of badness:
 
 1. Set an environment variable in the `--command`, for example, `--command "env" "CAXA=true" "{{caxa}}/node_modules/.bin/node" "..."`.
 2. Have a different entrypoint for the packaged application, for example, `--command "{{caxa}}/node_modules/.bin/node" "caxa-entrypoint.js"`.
@@ -153,11 +157,11 @@ Even though the code for the application is in a temporary directory, the curren
 
 #### The Issue
 
-As far as I can understand, the root of the problem with creating binaries for Node.js projects is native modules. Native modules are libraries written at least partly in C/C++, for example, [sharp](https://npm.im/sharp) and [@leafac/sqlite](https://npm.im/@leafac/sqlite) (shameless plug!). There are at least three issues with native modules that are relevant here:
+As far as I can understand, the root of the problem with creating binaries for Node.js projects is native modules. Native modules are libraries written at least partly in C/C++, for example, [sharp](https://npm.im/sharp), [@leafac/sqlite](https://npm.im/@leafac/sqlite) (shameless plug!), [and others](https://www.npmjs.com/package/windows-build-tools#examples-of-modules-supported). There are at least three issues with native modules that are relevant here:
 
 1. You must have a working C/C++ build system to install these libraries (C/C++ compiler, `make`, Python, and so forth). On Windows, you must install [windows-build-tools](https://npm.im/windows-build-tools). On macOS, you must install the Command-Line Tools (CLT) with `xcode-select --install`. On Linux, it depends on the distribution, but on Ubuntu `sudo apt install build-essential` is enough.
 
-2. The installation of native modules isn’t cross-platform. Unlike JavaScript dependencies, which you may copy from an operating system to another, native modules produce compiled C/C++ code that’s specific to the operating system on which the dependency was installed. This compiled code appears in your `node_modules` directory in the form of `.node` files.
+2. The installation of native modules isn’t cross-platform. Unlike JavaScript dependencies, which you may copy from an operating system to another, native modules produce compiled C/C++ code that’s specific to the operating system on which the dependency is installed. This compiled code appears in your `node_modules` directory in the form of `.node` files.
 
 3. As far as I understand, **Node.js insists on loading native modules from files in the disk**. Other Node.js packaging solutions get around this limitation in one of two ways: They either patch Node.js to trick it into loading native modules differently; or they put `.node` files somewhere before starting your program.
 
@@ -167,9 +171,9 @@ caxa builds on the idea of putting `.node` files in a temporary location, but ta
 
 At first, this may seem too costly, but in practice it’s mostly okay: It doesn’t take too long to uncompress a project in the first place, and caxa doesn’t clean the temporary directory after running your program, so subsequent calls are effectively cached and run without overhead.
 
-This idea is simple, but it’s super powerful! caxa supports any kind of project, including those with native dependencies, because running a caxa executable amounts to the same as installing Node.js on the user’s machine. caxa compiles binaries fast, because generating a self-extracting archive is a simple matter of concatenating some files. caxa supports any version of Node.js, because it simply copies the `node` executable with which it was called into the self-extracting archive.
+This idea is simple, but it’s super powerful! caxa supports any kind of project, including those with native dependencies, because running a caxa executable amounts to the same as installing Node.js on the user’s machine. caxa produces packages fast, because generating a self-extracting archive is a simple matter of concatenating some files. caxa supports any version of Node.js, because it simply copies the `node` executable with which it was called into the self-extracting archive.
 
-**Fun fact:** By virtue of compressing the archive, caxa produces naturally smaller binaries in comparison to other packaging solutions. Obviously, you could achieve the same effect by compressing the output of these other tools.
+**Fun fact:** By virtue of compressing the archive, caxa produces binaries that are naturally smaller when compared to other packaging solutions. Obviously, you could achieve the same outcome by compressing the output of these other tools, which may want to do anyway to preserve the file mode (see [§ Preserving the Executable Mode of the Binary](#preserving-the-executable-mode-of-the-binary)).
 
 #### How the Self-Extracting Archive Works
 
@@ -193,17 +197,26 @@ ARCHIVE
 FOOTER
 ```
 
-The `STUB` and the `ARCHIVE` are separated by the `### CAXA ###` string. And the `ARCHIVE` and the `FOOTER` are separated by a newline. This layout allows caxa to find the footer simply by looking backward from the end of the file until reaching a newline. And if this is the first time you’re running the caxa executable and the archive needs to be uncompressed, then caxa may find the beginning of the `ARCHIVE` by looking for the `### CAXA ###` separator forward from the beginning.
+The `STUB` and the `ARCHIVE` are separated by the `### CAXA ###` string. And the `ARCHIVE` and the `FOOTER` are separated by a newline. This layout allows caxa to find the footer by simply looking backward from the end of the file until it reaches a newline. And if this is the first time you’re running the caxa executable and the archive needs to be uncompressed, then caxa may find the beginning of the `ARCHIVE` by looking forward from the beginning until it reaches the `### CAXA ###` separator.
 
-Build a binary with caxa and inspect it yourself in a text editor (Visual Studio Code asks you to confirm that you want to open a binary as text, but it works fine). You should be able to find the `### CAXA ###` separator between the `STUB` and the `ARCHIVE`, as well as the `FOOTER` at the end.
+Build a binary with caxa and inspect it yourself in a text editor (Visual Studio Code asks you to confirm that you want to open a binary, but works fine after that). You should be able to find the `### CAXA ###` separator between the `STUB` and the `ARCHIVE`, as well as the `FOOTER` at the end.
 
 Let’s examine each of the parts in detail:
 
 **Part 1: Stub**
 
-This is a program written in Go that, when executed, reads itself as a file, finds the archive, extracts it, finds the footer, and runs whatever command it finds there. You may find the source code for the stub in `stubs/stub.go`, and the compiled stubs live in `stubs`. The stubs are distributed with caxa in compiled form so you don’t need a Go build system to use caxa. You may build the stubs yourself with `npm run stubs`. This Go program has no dependencies beyond the Go standard library, so simply installing Go is enough, there’s no need to setup Go modules or configure a `$GOPATH`.
+This is a program written in Go that:
 
-This is beautiful in a way: We’re using Go’s ability to produce binaries to bootstrap Node.js’s new ability to produce binaries.
+1. Reads itself as a file.
+2. Finds the footer.
+3. Determines whether it’s necessary to extract the archive.
+   1. If so, finds the archive.
+   2. Extracts it.
+4. Runs whatever command it’s told in the footer.
+
+You may find the source code for the stub in `stubs/stub.go`, and the compiled stubs live in `stubs`. The stubs are distributed with caxa in compiled form so you don’t need a Go build system to use caxa. If you have Go build system, then you may rebuild the stubs yourself with `npm run stubs`. This Go program has no dependencies beyond the Go standard library, so simply installing Go is enough—there’s no need to setup Go modules or configure a `$GOPATH`.
+
+This is beautiful in a way: We’re using Go’s ability to produce binaries to bootstrap Node.js’s ability to produce binaries.
 
 **Part 2: Archive**
 
@@ -211,7 +224,7 @@ This is a tarball of the directory with your project.
 
 **Part 3: Footer**
 
-This is JSON containing the extra information that caxa needs to run your project. Most importantly, the command that you want to run, but also an identifier for where to uncompress the archive.
+This is JSON containing the extra information that caxa needs to run your project: Most importantly, the command that you want to run, but also an identifier for where to uncompress the archive.
 
 #### Using the Self-Extracting Archive without caxa
 
@@ -239,13 +252,13 @@ Look for a directory named `caxa` in there.
 
 Two reasons:
 
-1. I believe you should have environments to work with all the operating systems you plan on supporting. They may not be your main development environment, but they should be able to build your project and let you test things. At the very least, you should use a service like GitHub Actions which let you run building tasks and tests on Windows, macOS, and Linux.
+1. I believe you should have environments to work with all the operating systems you plan on supporting. They may not be your main development environment, but they should be able to build your project and let you test things. At the very least, you should use a service like GitHub Actions which lets you run build tasks and tests on Windows, macOS, and Linux.
 
    (I, for one, bought a PC to work on caxa. Yet another reason to [support my work](#support)!)
 
-2. The principle of least surprise. When cross-compiling (for example, building a Windows executable from a macOS development machine), or when bundling different versions of Node.js (for example, bundling Node.js 15 while running caxa with Node.js 14), there’s no straightforward way to guarantee that the packaged project will run the same as the unpackaged version. If you aren’t using any native modules then things **may** work, but as soon as you introduce a new dependency that you didn’t know was native your packages may break. Not only are native dependencies different on the operating systems, but they may also be different between different versions of Node.js if these versions aren’t ABI-compatible (which is why sometimes when you update Node.js you must run `npm install` again).
+2. The principle of least surprise. When cross-compiling (for example, building a Windows executable from a macOS development machine), or when bundling different versions of Node.js (for example, bundling Node.js 15 while running caxa with Node.js 14), there’s no straightforward way to guarantee that the packaged project will run the same as the unpackaged version. If you aren’t using any native modules then things **may** work, but as soon as you introduce a new dependency that you didn’t know was native your application may break. Not only are native dependencies different on the operating systems, but they may also be different between different versions of Node.js if these versions aren’t ABI-compatible (which is why sometimes when you update Node.js you must run `npm install` again).
 
-**Fun fact:** The gold-standard for easy cross-compilation these days is Go. But even in Go cross-compilation goes out the window as soon as you introduce C dependencies (something called CGO). It appears that many people in the Go community try to solve the issue by avoiding CGO dependencies, sometimes going to great lengths to reinvent everything in pure Go. On the one hand, this sounds like fun when it works out. On the other hand, it’s a huge case of not-invented-here syndrome. In any case, native modules are much more prevalent in Node.js than CGO is in Go, so I think that cross-compilation in caxa would be a fool’s errand.
+**Fun fact:** The gold-standard for easy cross-compilation these days is Go. But even in Go cross-compilation goes out the window as soon as you introduce C dependencies (something called CGO). It appears that many people in the Go community try to solve the issue by avoiding CGO dependencies, sometimes going to great lengths to reinvent everything in pure Go. On the one hand, this sounds like fun when it works out. On the other hand, it’s a huge case of not-invented-here syndrome. In any case, native modules seem to be much more prevalent in Node.js than CGO is in Go, so I think that cross-compilation in caxa would be a fool’s errand.
 
 If you still insist on cross-compiling or compiling for different versions of Node.js, you can still use the stub to build a self-extracting archive by hand (see [§ Using the Self-Extracting Archive without caxa](#using-the-self-extracting-archive-without-caxa)). You may even use <https://www.npmjs.com/package/node> to more easily bundle different versions of Node.js.
 
@@ -255,11 +268,15 @@ If you’re interested in one of these features, please send a Pull Request if y
 
 1. Other compression algorithms. Currently caxa uses tarballs, which are ubiquitous and reasonably efficient in terms of compression/uncompression times and archive size. But there are better algorithms out there… (See <https://github.com/leafac/caxa/issues/1>.)
 
-2. Add support for signing the executables. There are limitations on the kinds of executables that are signable, and a self-extracting archive of the kind that caxa produces may be unsignable (I know very little about this…). A solution could be use Go’s support for embedding data in the binary (which landed in Go 1.16). Of course this would require the person packaging a project to have a working Go build system.
+2. Add support for signing the executables. There are limitations on the kinds of executables that are signable, and a self-extracting archive of the kind that caxa produces may be unsignable (I know very little about this…). A solution could be use Go’s support for embedding data in the binary (which landed in Go 1.16). Of course this would require the person packaging a project to have a working Go build system. Another solution would be to manipulate the executables as data structures, instead of just appending stuff at the end. Go has facilities for this in the standard library, but then the packager itself (not only the stubs) would have to be written in Go, and creating packages on the command line by simply concatenating files would be impossible.
 
 3. Add support for custom icons and other package metadata. This should be relatively straightforward by using [rcedit](https://github.com/electron/rcedit) for `.exe`s and by adding `.plist` files to `.app`s (we may copy whatever Electron is doing here as well).
 
 ### Prior Art
+
+Here’s my preliminary research: <https://github.com/vercel/pkg/pull/837#issuecomment-782522154>
+
+Below follows the extended version with everything I learned along the way of building caxa.
 
 #### [Deno](https://deno.land/manual@v1.8.0/tools/compiler)
 
@@ -273,33 +290,33 @@ It works by patching the Node.js executable with a proxy around [`fs`](https://g
 
 Unfortunately, this approach has a few issues:
 
-1. The Node.js patches must be kept up-to-date. For example, when `fs/promises` became a thing, the `fs` proxy broke. It was a subtle and surprising issue that only arises in the packaged version of the application. (See my soon-to-be-archived-now-that-caxa-is-out fork of pkg, [@leafac/pkg](https://github.com/leafac/pkg) for a workaround, as well as the issues linked there for more information).
+1. The Node.js patches must be kept up-to-date. For example, when `fs/promises` became a thing, the `fs` proxy didn’t support it. It was a subtle and surprising issue that only arises in the packaged version of the application. (For the fix, see my fork of pkg, [@leafac/pkg](https://github.com/leafac/pkg) (which has been deprecated now that caxa has been released).)
 
 2. The patched Node.js distributions must be updated with each new Node.js release. At the time of this writing they’re [lagging behind by half an year](https://github.com/vercel/pkg-fetch/releases) (v14.4.0, while the latest LTS is v14.16.0). That’s new features and security updates you may not be getting. (See https://github.com/yao-pkg/pkg-binaries for a seemingly abandoned attempt at automating the patching process that could improve on this situation. Of course, manual intervention would still be required every time the patches become incompatible with Node.js upstream.)
 
 3. Native modules work [by the way of a self-extracting archive](https://github.com/vercel/pkg/tree/7a9257ac91efaddc90c558173af1a6bec5da6cdd#native-addons).
 
-Also, pkg tries to prune your directory to try and find only the files that matter. This is good if you want to optimize for small binaries with little effort. But often this process goes wrong, specially when something like TypeScript produces JavaScript that throws off pkg’s heuristics. In that case you have to intervene and list the files that should be included by hand.
+Also, pkg traverses the source code for your application and its dependencies looking for things like `require()`s to prune code that isn’t used. This is good if you want to optimize for small binaries with little effort. But often this process goes wrong, specially when something like TypeScript produces JavaScript that throws off pkg’s heuristics. In that case you have to intervene and list the files that should be included by hand.
 
 Not to mention that the maintainers of pkg haven’t been super responsive this past year. (And who can blame them? Open-source is **hard**. No shade thrown here; pkg is **awesome**! And speaking of “open-source is hard,” [support my work](#support)!)
 
 #### <https://github.com/nexe/nexe>
 
-The second most popular packaging solution in Node.js, right behind pkg. nexe works by a similar strategy, and suffers from some of the same issues. But `fs/promises` work, [newer Node.js versions are available](https://github.com/nexe/nexe/releases/tag/v3.3.3), and the project seems to be more actively maintained.
+The second most popular packaging solution in Node.js. nexe works by a similar strategy, and suffers from some of the same issues. But `fs/promises` work, [newer Node.js versions are available](https://github.com/nexe/nexe/releases/tag/v3.3.3), and the project seems to be maintained more actively.
 
-Native modules don’t work, but there’s a workaround based on the self-extracting archive idea: https://github.com/nmarus/nexe-natives
+Native modules don’t work, but there’s a workaround based on the idea of self-extracting archives: https://github.com/nmarus/nexe-natives
 
 #### <https://github.com/mongodb-js/boxednode>
 
-This works with a different strategy. Node.js has a bunch of standard libraries written in JavaScript itself, and when Node.js is built, this JavaScript ends up embedded as part of the `node` executable. boxednode works by recompiling Node.js from source with your project embedded as if it were just another standard library. On the upside, this supports native extensions and whatever new `fs/promises` situation comes up in the future. The down side is that compiling Node.js takes hours (the first time, and still a couple minutes after the subsequent times) and 10+GB of disk(!) Also, boxednode only works with a single JavaScript file, so you must bundle with something like ncc or webpack before packaging. And I don’t think it could handle assets like images along with the code (think of packaging a web application).
+This works with a different strategy. Node.js has a part of the standard library written in JavaScript itself, and when Node.js is built, this JavaScript ends up embedded as part of the `node` executable. boxednode works by recompiling Node.js from source with your project embedded as if it were part of the standard library. On the upside, this supports native extensions and whatever new `fs/promises` situation comes up in the future. The down side is that compiling Node.js takes hours (the first time, and still a couple minutes after the subsequent times) and 10+GB of disk(!) Also, boxednode only works with a single JavaScript file, so you must bundle with something like ncc or webpack before packaging. And I don’t think it handles assets like images along with the code, which would be essential when packaging a web application.
 
 #### <https://github.com/pmq20/node-packer>
 
-This works with an idea of a **snapshot** file system (à la pkg), but it uses a more principled approach for that, something called Squashfs. To the best of my knowledge the native-extensions story in node-packer is the same self-extracting archive from most packaging solutions. The downside of node-packer is that installing and setting it up is a bit more involved than a simple `npm install`. For that reason I ended up not really giving it a try, so I’ll say no further…
+This works with an idea of a **snapshot** file system (à la pkg), but it follows a more principled approach for that, using something called Squashfs. To the best of my knowledge the native-extensions story in node-packer is the same self-extracting archive from most packaging solutions. The downside of node-packer is that installing and setting it up is a bit more involved than a simple `npm install`. For that reason I ended up not really giving it a try, so I’ll say no further…
 
 #### <https://github.com/criblio/js2bin>
 
-This should work with a strategy similar to boxednode, but with a pre-compiled binary including some pre-allocated space to save you from having to compile Node.js from source. Like boxednode, it also works with only a single JavaScript file at a time, requiring a bundler like ncc or webpack. I tried js2bin out and it produced binaries that didn’t work at all. I have no idea why…
+This should work with a strategy similar to boxednode, but with a pre-compiled binary including some pre-allocated space to save you from having to compile Node.js from source. Like boxednode, it should handle only a single JavaScript file, requiring a bundler like ncc or webpack. I tried js2bin and it produced binaries that didn’t work at all. I have no idea why…
 
 #### <http://enclosejs.com>
 
@@ -307,11 +324,11 @@ The predecessor of pkg. Worked with the same idea. I believe it has been depreca
 
 #### <https://github.com/h2non/nar>
 
-This is the project that gave me the idea for caxa! It’s more obscure, so at first I gave it little attention in my investigation. But then it handled native extensions and the latest Node.js versions out-of-the-box despite haven’t been updated in 4 years! I was intrigued!
+This is the project that gave me the idea for caxa! It’s more obscure, so at first I payed it little attention in my investigation. But then it handled native extensions and the latest Node.js versions out-of-the-box despite haven’t been updated in 4 years! I was delighted and intrigued!
 
-In principle, it works the same as caxa, using the idea of a self-extracting archive. There are some important differences, though:
+In principle, nar works the same as caxa, using the idea of a self-extracting archive. There are some important differences, though:
 
-1. nar doesn’t support Windows. That’s because nar’s stub is a bash script instead of the Go binary that we use in caxa.
+1. nar doesn’t support Windows. That’s because nar’s stub is a bash script instead of the Go binary used in caxa.
 2. nar gets some small details wrong. For example, it changes your current working directory to the temporary directory in which the archive is uncompressed. This breaks some assumptions about how command-line tools should work; for example, if you’re project implements `ls` in Node.js, then when running it from nar it’d always list the files in the temporary directory.
 3. It’s no longer maintained. They recommend pkg instead.
 4. It was written in LiveScript, which is significantly more obscure than TypeScript/Go, in which caxa is implemented.
@@ -324,7 +341,7 @@ Similar to nar. Hasn’t seen activity in 8 years.
 
 If you dig through npm, GitHub, and Google, you’ll find other projects in this space, but I couldn’t find one that had a good combination of working well, being well documented, being well maintained, and so forth.
 
-#### References About Self-Extracting Archives
+#### References on Self-Extracting Archives
 
 Creating a self-extracting archive with a bash script for the stub (only works on macOS/Linux, and depends on things like `tar` being available—which they probably are):
 
@@ -345,7 +362,7 @@ Creating a self-extracting batch file for Windows (an idea I didn’t pursue, go
 
 Other tools that create self-extracting archives:
 
-- 7-Zip. It was studying 7-Zip that I learned that you can append data to a binary, and the concept of how to create a self-extracting archive sunk in. Unfortunately I couldn’t use 7-Zip itself because it’s tailored for **installers** as opposed to **applications**, so some assumptions break.
+- 7-Zip. It was studying 7-Zip that I learned that you can append data to a binary. caxa uses an approach that’s similar to 7-Zip’s to build a self-extracting archive. The major different in the binary layout is that the metadata goes in the footer, instead of between the stub and the archive like in 7-Zip. Switching these two around allows caxa to read the footer and potentially skip looking at the archive altogether if it isn’t the first time you’re running the application and it’s already cached. Unfortunately I couldn’t use 7-Zip itself because it’s tailored for **installers** as opposed to **applications**, so some things don’t work well.
   - <https://sevenzip.osdn.jp/chm/start.htm>
   - <https://sevenzip.osdn.jp/chm/cmdline/switches/sfx.htm>
   - <https://superuser.com/questions/42788/is-it-possible-to-execute-a-file-after-extraction-from-a-7-zip-self-extracting-a>
@@ -366,11 +383,13 @@ Other tools that create self-extracting archives:
 - <https://documentation.help/WinRAR/HELPArcSFX.htm>
 - <https://en.wikipedia.org/wiki/IExpress> (I tried this and it didn’t work. Also I think it’d be difficult to automate. And it’s old technology.)
 
-#### References about Building the Stub in C
+#### References on Building the Stub in C
 
-Besides Go, I also considered writing the stub in C. Ultimately Go won because it’s less prone to errors and has a better cross-compilation/standard-library story. But C has the advantage of being setup in the machines of Node.js developers because of native dependencies. Anyway, here’s what you could use to build a stub in C:
+Besides Go, I also considered writing the stub in C. Ultimately Go won because it’s less prone to errors and has a better cross-compilation/standard-library story. But C has the advantage of being setup in the machines of Node.js developers because of native dependencies. You could leverage that to use the linker (`ld`) to embed the archive, instead of crudely appending it to the end of the stub. This could be necessary to handle signing…
 
-- Just use `system()` and rely on `tar` being installed (it most certainly is, anyway): <https://www.tutorialspoint.com/c_standard_library/c_function_system.htm>
+Anyway, here’s what you could use to build a stub in C:
+
+- Just use `system()` and rely on `tar` being installed (it most certainly is, anyway). At this point C becomes a portable bash stub. <https://www.tutorialspoint.com/c_standard_library/c_function_system.htm>
 - <http://www.libarchive.org>: This is the implementation of `tar` that you find in Windows 10 and many other places.
   - <https://github.com/libarchive/libarchive/wiki/LibarchiveFormats>
 - <https://zlib.net>: This is the underlying implementation of gzip that [may be the most deployed software library in existence](https://www.sqlite.org/mostdeployed.html). It’s lower level than libarchive.
@@ -379,26 +398,26 @@ Besides Go, I also considered writing the stub in C. Ultimately Go won because i
 - <https://github.com/calccrypto/tar>
 - <https://repo.or.cz/libtar.git>
 
-#### References about Creating Self-Extracting Archives in Node.js
+#### References on Creating Self-Extracting Archives in Node.js
 
 - <https://github.com/vk-twiconnect/sfx-creator-service>
 - <https://stackoverflow.com/questions/27904532/how-do-i-make-a-self-extract-and-running-installer>
-- <https://www.npmjs.com/package/sfxbundler>
-  - <https://github.com/touchifyapp/sfx>
 
-#### References about the Structure of Executables
+#### References on the Structure of Executables
 
-A more principled way of building the self-extracting archive is to not append data at the end of the file, but manipulate the stub binary as a data structure. It’s actually three data structures: Portable Executables (Windows), Mach-O (macOS), and ELF (Linux). This idea was abandoned because it’s more work for the packager and for the stub—the `### CAXA ###` separator is a hack that works well enough. But we may have to revisit this to make the executables signable. You can even manipulate binaries with Go standard libraries.
+A more principled way of building the self-extracting archive is to not append data at the end of the file, but manipulate the stub binary as a data structure. It’s actually three data structures: Portable Executables (Windows), Mach-O (macOS), and ELF (Linux). This idea was abandoned because it’s more work for the packager and for the stub—the `### CAXA ###` separator is a hack that works well enough. But we may have to revisit this to make the executables signable. You can even manipulate binaries with Go standard libraries…
 
 Anyway, here are some references on the subject:
 
+- <https://www.npmjs.com/package/sfxbundler> (This project seems to do exactly what I’m talking about here.)
+  - <https://github.com/touchifyapp/sfx>
 - <https://github.com/AlexanderOMara/portable-executable-signature>
 - <https://github.com/anders-liu/pe-struct>
 - <https://github.com/ironSource/portable-executable>
 - <https://github.com/bennyhat/peid-finder>
 - <https://github.com/lief-project/LIEF>
 
-#### References about Just Appending Data to an Executable Works
+#### References on Just Appending Data to an Executable Works
 
 The data that you append is sometimes called an **overlay**.
 
@@ -409,7 +428,7 @@ The data that you append is sometimes called an **overlay**.
 - <https://github.com/jason-klein/signed-nsis-exe-append-payload>
 - <https://stackoverflow.com/questions/5316152/store-data-in-executable>
 
-#### References About Cross-Compilation of CGO
+#### References on Cross-Compilation of CGO
 
 - <https://github.com/karalabe/xgo>
 - <https://github.com/mattn/go-sqlite3>: A popular project using CGO.
@@ -427,7 +446,7 @@ The data that you append is sometimes called an **overlay**.
 - macOS’s Automator can generate `.app`.
 - <https://www.electronjs.org/docs/tutorial/application-distribution>
 
-#### References about How to Untar in Go
+#### References on How to Untar in Go
 
 The Go standard library has low-level utilities for handling tarballs. I could have used a higher-level library, but I couldn’t get them to work with an archive that’s in memory (having been extracted from the binary). Besides, relying only on the standard library is good for an easy compilation story. In the end, the solution was to copy and paste a bunch.
 
@@ -443,9 +462,9 @@ The Go standard library has low-level utilities for handling tarballs. I could h
 - <https://medium.com/learning-the-go-programming-language/working-with-compressed-tar-files-in-go-e6fe9ce4f51d>
 - <https://github.com/codeclysm/extract>
 
-#### References about How to Execute a Command from Go
+#### References on How to Execute a Command from Go
 
-It’d have been nice to use `syscall.Exec()`, which replaces the currently running binary (the stub) with another one (the command you want to run for your application), but `syscall.Exec()` is macOS/Linux-only. So we use `os.Exec()` instead, paying attention to wiring `stdin/stdout/stderr`, and forwarding the command-line arguments on the way and the status code on the way out. The downside is that there’s an extra process in the process tree.
+It’d have been nice to use `syscall.Exec()`, which replaces the currently running binary (the stub) with another one (the command you want to run for your application), but `syscall.Exec()` is macOS/Linux-only. So we use `os.Exec()` instead, paying attention to wiring `stdin/stdout/stderr` between the processes, and forwarding the command-line arguments on the way and the status code on the way out. The downside is that there’s an extra process in the process tree.
 
 - <https://github.com/golang/go/issues/30662>
 - <https://golang.org/pkg/os/exec/>
@@ -455,8 +474,16 @@ It’d have been nice to use `syscall.Exec()`, which replaces the currently runn
 - <https://pkg.go.dev/golang.org/x/sys@v0.0.0-20210226181700-f36f78243c0c/windows/mkwinsyscall>
 - <https://stackoverflow.com/questions/10385551/get-exit-code-go>
 
-#### References about the Layout of the Data in the Self-Extracting Archive
+#### References on the Layout of the Data in the Self-Extracting Archive
 
-- <https://stackoverflow.com/questions/1443158/binary-data-in-json-string-something-better-than-base64>: I played with the idea of including the `ARCHIVE` in the JSON that ended up becoming the `FOOTER`. It’d have been simpler conceptually, but embedding binary data in JSON has an overhead.
+- <https://stackoverflow.com/questions/1443158/binary-data-in-json-string-something-better-than-base64>: I played with the idea of including the `ARCHIVE` in the JSON that ended up becoming the `FOOTER`. It’d have been simpler conceptually, because there’d be only the stub and a payload, but embedding binary data in JSON has an overhead.
 - Maybe I could have used multipart/form-data, which is a standard way of interleaving binary data and text. But the layout was so simple that I decided against it. Being able to generate a binary by appending stuff on the command line is handy and cute.
 - <https://github.com/electron/asar>
+
+### What’s up with This Name?
+
+caxa is a misspelling of **caixa**, which is Portuguese for **box**. I find it amusing to say that you’re putting an application in the **caxa** 📦 🙄
+
+### Conclusion
+
+As you see from this long README, despite being simple in spirit, caxa is the result of a lot of research and hard work. Simplicity is **hard**. So [support my work](#support).
