@@ -27,7 +27,7 @@
 - Packages in seconds.
 - Relatively small binaries. A “Hello World!” application is ~30MB, which is terrible if compared to Go’s ~2MB, and worse still if compared to C’s ~50KB, but best-in-class if compared to other packaging solutions for Node.js.
 - Produces `.exe`s for Windows, simple binaries for macOS/Linux, and macOS Application Bundles (`.app`).
-- Based on a simple but powerful idea. Written in ~200 lines of code.
+- Based on a simple but powerful idea. Implemented in ~200 lines of code.
 - No magic. No traversal of `require()`s trying to find which files to include; no patches to Node.js source.
 
 ### Anti-Features
