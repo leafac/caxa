@@ -170,3 +170,36 @@ test("native-modules", async () => {
     sharp: 48"
   `);
 });
+
+test("false", async () => {
+  const output = path.join(
+    testsDirectory,
+    `false${process.platform === "win32" ? ".exe" : ""}`
+  );
+  const appDirectory = path.join(os.tmpdir(), "caxa", "false");
+  await execa("ts-node", [
+    "src/index.ts",
+    "--directory",
+    "examples/false",
+    "--command",
+    "{{caxa}}/node_modules/.bin/node",
+    "{{caxa}}/index.js",
+    "--output",
+    output,
+  ]);
+  // Cached from build.
+  await expect(execa(output)).rejects.toThrowError(
+    "Command failed with exit code 1"
+  );
+  expect(await fs.pathExists(appDirectory)).toBe(true);
+  await fs.remove(appDirectory);
+  expect(await fs.pathExists(appDirectory)).toBe(false);
+  // Uncached.
+  await expect(execa(output)).rejects.toThrowError(
+    "Command failed with exit code 1"
+  );
+  // Cached from previous run.
+  await expect(execa(output)).rejects.toThrowError(
+    "Command failed with exit code 1"
+  );
+});
