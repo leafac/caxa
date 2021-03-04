@@ -25,7 +25,7 @@ export default async function caxa({
     throw new Error(`The path to package isn’t a directory: ‘${directory}’.`);
 
   const identifier = path.join(
-    path.basename(path.resolve(output)),
+    path.basename(path.basename(output, ".app"), ".exe"),
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
   const appDirectory = path.join(os.tmpdir(), "caxa", identifier);

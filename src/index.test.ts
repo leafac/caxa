@@ -13,6 +13,8 @@ const testsDirectory = path.join(
   cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
 );
 beforeAll(async () => {
+  await fs.remove(path.join(os.tmpdir(), "caxa"));
+  await fs.remove(testsDirectory);
   await fs.ensureDir(testsDirectory);
 });
 

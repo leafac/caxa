@@ -233,7 +233,7 @@ This is JSON containing the extra information that caxa needs to run your projec
 ```console
 $ cp stubs/macos an-ls-caxa
 $ tar -czf - README.md >> an-ls-caxa
-$ printf "\n{ \"identifier\": \"an-ls-caxa/AN-ARBITRARY-STRING-THATS-DIFFERENT-EVERY-TIME\", \"command\": [\"ls\", \"{{caxa}}\"] }" >> an-ls-caxa
+$ printf "\n{ \"identifier\": \"an-ls-caxa/AN-ARBITRARY-STRING-THAT-SHOULD-BE-DIFFERENT-EVERY-TIME\", \"command\": [\"ls\", \"{{caxa}}\"] }" >> an-ls-caxa
 $ ./an-ls-caxa
 README.md
 ```
