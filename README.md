@@ -51,6 +51,7 @@ $ npm install --save-dev caxa
 - Install any dependencies with `npm install` or `npm ci`.
 - Build. For example, compile TypeScript with `tsc`, bundle with webpack, and whatever else you need to get the project ready to start. Typically this is the kind of thing that goes into an [npm `prepare` script](https://docs.npmjs.com/cli/v7/using-npm/scripts#prepare-and-prepublish), so the `npm ci` from the previous point may already have taken care of this.
 - If there are files that shouldn’t be in the package, remove them from the directory. For example, you may wish to remove the `.git` directory.
+- You don’t need to `npm prune --production` and `npm dedupe`, because caxa will do that for you from within the build directory. (Otherwise, if you tried to `npm prune --production` you’d uninstall caxa, which should probably be in `devDependencies`.)
 - It’s recommended that you run caxa on a Continuous Integration server. (GitHub Actions, for example, does a shallow fetch of the repository, so removing the `.git` directory becomes unnecessary.)
 
 #### Call caxa from the Command Line
