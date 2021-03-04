@@ -262,6 +262,12 @@ Two reasons:
 
 If you still insist on cross-compiling or compiling for different versions of Node.js, you can still use the stub to build a self-extracting archive by hand (see [§ Using the Self-Extracting Archive without caxa](#using-the-self-extracting-archive-without-caxa)). You may even use <https://www.npmjs.com/package/node> to more easily bundle different versions of Node.js.
 
+#### How the macOS Application Bundles (`.app`) Work
+
+An macOS Application Bundle is just a folder with a particular structure and an executable at a particular place. When creating a macOS Application Bundle caxa doesn’t build a self-extracting archive, instead it just copies the application to the right place and creates an executable bash script to start the process.
+
+The macOS Application Bundle may be run by simply double-clicking on it from Finder. It opens a Terminal.app window with your application. If you’re running an application that wasn’t built on your machine (which is most likely the case for your users, who probably downloaded the application from the internet), then the first time you run it macOS will probably complain about the lack of a signature. The solution is to go to **System Preferences > Security & Privacy > General** and click on **Allow**. You must instruct your users on how to do this.
+
 ### Features to Consider Implementing in the Future
 
 If you’re interested in one of these features, please send a Pull Request if you can, or at least reach out to me and mention your interest, and I may get to them.
