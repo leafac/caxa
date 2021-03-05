@@ -60,11 +60,20 @@ $ npm install --save-dev caxa
 $ npx caxa --help
 Usage: caxa [options]
 
+
 Options:
   -d, --directory <directory>               The directory to package.
-  -c, --command <command-and-arguments...>  The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute. The ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The
-                                            ‘node’ executable is available at ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument.
-  -o, --output <output>                     The path at which to produce the executable. Overwrites existing files/folders. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS Application Bundle.
+  -c, --command <command-and-arguments...>  The command to run and optional arguments to pass to
+                                            the command every time the executable is called. Paths
+                                            must be absolute. The ‘{{caxa}}’ placeholder is
+                                            substituted for the folder from which the package
+                                            runs. The ‘node’ executable is available at
+                                            ‘{{caxa}}/node_modules/.bin/node’. Use double quotes
+                                            to delimit the command and each argument.
+  -o, --output <output>                     The path at which to produce the executable.
+                                            Overwrites existing files/folders. On Windows must end
+                                            in ‘.exe’. On macOS may end in ‘.app’ to generate a
+                                            macOS Application Bundle.
   -V, --version                             output the version number
   -h, --help                                display help for command
 
