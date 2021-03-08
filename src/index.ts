@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
+import stream from "stream";
 import process from "process";
 import path from "path";
 import os from "os";
 import fs from "fs-extra";
 import execa from "execa";
 import archiver from "archiver";
+import brotli from "brotli";
 import cryptoRandomString from "crypto-random-string";
 import commander from "commander";
 
@@ -13,16 +15,21 @@ export default async function caxa({
   directory,
   command,
   output,
+  format,
 }: {
   directory: string;
   command: string[];
   output: string;
+  format: string;
 }): Promise<void> {
   if (
     !(await fs.pathExists(directory)) ||
     !(await fs.lstat(directory)).isDirectory()
   )
     throw new Error(`The path to package isn’t a directory: ‘${directory}’.`);
+
+  if (["gzip", "brotli"].indexOf(format) === -1)
+    throw new Error(`Format must be ‘gzip’ or ‘brotli’.`);
 
   const identifier = path.join(
     path.basename(path.basename(output, ".app"), ".exe"),
@@ -87,17 +94,34 @@ export default async function caxa({
       ),
       output
     );
-    const archive = archiver("tar", { gzip: true });
-    const archiveStream = fs.createWriteStream(output, { flags: "a" });
+   
+    const rawData: any[] = [];
+    const rawStream = new stream.Writable({
+      write: (chunk, _, done) => {
+        rawData.push(chunk);
+        done();
+      },
+    });
+
+    const archive = archiver("tar", { gzip: format === "gzip" });
+    const archiveStream = (format === "gzip") ? fs.createWriteStream(output, { flags: "a" }) : rawStream;
+   
     archive.pipe(archiveStream);
     archive.directory(appDirectory, false);
-    await archive.finalize();
+
     // FIXME: Use ‘stream/promises’ when Node.js 16 lands, because then an LTS version will have the feature: await stream.finished(archiveStream);
-    await new Promise((resolve, reject) => {
+    let finishPromise = new Promise((resolve, reject) => {
       archiveStream.on("finish", resolve);
       archiveStream.on("error", reject);
     });
-    await fs.appendFile(output, "\n" + JSON.stringify({ identifier, command }));
+   
+    await archive.finalize();
+    await finishPromise;
+   
+    if (format === "brotli")
+      await fs.appendFile(output, brotli.compress(Buffer.concat(rawData)));
+
+    await fs.appendFile(output, "\n" + JSON.stringify({ identifier, command, format }));
   }
 }
 
@@ -116,6 +140,7 @@ if (require.main === module)
         "-o, --output <output>",
         "The path at which to produce the executable. Overwrites existing files/folders. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS Application Bundle."
       )
+      .option('-f, --format <format>', 'The compression format to use, either ‘gzip’ (default) or ‘brotli’. Brotli takes several minutes to compress, but makes an output executable at least 6MB smaller.', "gzip")
       .version(require("../package.json").version)
       .addHelpText(
         "after",
@@ -137,13 +162,15 @@ Examples:
           directory,
           command,
           output,
+          format,
         }: {
           directory: string;
           command: string[];
           output: string;
+          format: string;
         }) => {
           try {
-            await caxa({ directory, command, output });
+            await caxa({ directory, command, output, format });
           } catch (error) {
             console.error(error.message);
             process.exit(1);
