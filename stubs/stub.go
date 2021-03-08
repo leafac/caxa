@@ -16,6 +16,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"github.com/google/brotli/go/cbrotli"
 )
 
 func main() {
@@ -38,12 +39,15 @@ func main() {
 	var footer struct {
 		Identifier string   `json:"identifier"`
 		Command    []string `json:"command"`
+		Format     string   `json:"format"`
 	}
 	if err := json.Unmarshal(footerString, &footer); err != nil {
 		log.Fatalf("caxa stub: Failed to parse JSON in footer: %v", err)
 	}
 
 	appDirectory := path.Join(os.TempDir(), "caxa", footer.Identifier)
+	log.Printf("caxa stub: appDirectory: %v", appDirectory)
+
 	appDirectoryFileInfo, err := os.Stat(appDirectory)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		log.Fatalf("caxa stub: Failed to find information about caxa directory: %v", err)
@@ -63,7 +67,18 @@ func main() {
 		}
 		archive := executable[archiveIndex+len(archiveSeparator) : footerIndex]
 
-		if err := Untar(bytes.NewReader(archive), appDirectory); err != nil {
+		var reader io.Reader;
+
+		if footer.Format == "brotli" {
+			reader = cbrotli.NewReader(bytes.NewReader(archive))
+		} else {
+			reader, err = gzip.NewReader(bytes.NewReader(archive))
+			if err != nil {
+				log.Fatalf("requires gzip compressed body: %v", err)
+			}
+		}
+
+		if err := Untar(reader, appDirectory); err != nil {
 			log.Fatalf("caxa stub: Failed to uncompress archive: %v", err)
 		}
 	}
@@ -131,11 +146,7 @@ func untar(r io.Reader, dir string) (err error) {
 	// 		log.Printf("error extracting tarball into %s after %d files, %d dirs, %v: %v", dir, nFiles, len(madeDir), td, err)
 	// 	}
 	// }()
-	zr, err := gzip.NewReader(r)
-	if err != nil {
-		return fmt.Errorf("requires gzip-compressed body: %v", err)
-	}
-	tr := tar.NewReader(zr)
+	tr := tar.NewReader(r)
 	loggedChtimesError := false
 	for {
 		f, err := tr.Next()
