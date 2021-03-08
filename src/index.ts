@@ -140,7 +140,7 @@ if (require.main === module)
         "-o, --output <output>",
         "The path at which to produce the executable. Overwrites existing files/folders. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS Application Bundle."
       )
-      .option('-f, --format <format>', 'The compression format to use, either ‘gzip’ (default) or ‘brotli’. Brotli takes several minutes to compress, but makes an output executable at least 6MB smaller.', "gzip")
+      .option("-f, --format <format>", "The compression format to use, either ‘gzip’ (default) or ‘brotli’. Brotli takes several minutes to compress, but generates an output executable at least 6MB smaller.", "gzip")
       .version(require("../package.json").version)
       .addHelpText(
         "after",
