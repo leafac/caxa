@@ -9,15 +9,20 @@ import archiver from "archiver";
 import cryptoRandomString from "crypto-random-string";
 import commander from "commander";
 
+export interface CaxaOptions {
+	directory: string;
+	command: string[];
+	output: string;
+ 	filter?:(src:string, dest:string)=>boolean
+  }
+
+
 export default async function caxa({
   directory,
   command,
   output,
-}: {
-  directory: string;
-  command: string[];
-  output: string;
-}): Promise<void> {
+  filter,
+}:CaxaOptions ): Promise<void> {
   if (
     !(await fs.pathExists(directory)) ||
     !(await fs.lstat(directory)).isDirectory()
@@ -29,7 +34,7 @@ export default async function caxa({
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
   const appDirectory = path.join(os.tmpdir(), "caxa", identifier);
-  await fs.copy(directory, appDirectory);
+  await fs.copy(directory, appDirectory, {filter});
 
   // if we did not copy a node modules folder, but there is a package or package-lock file, run npm install
   if (!(await fs.pathExists(path.join(appDirectory, "node_modules")))) {
