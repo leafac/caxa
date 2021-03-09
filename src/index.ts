@@ -44,7 +44,6 @@ export default async function caxa({
       }
     } catch (err) {
       try {
-        console.log(`install from package.json`, appDirectory);
         await execa("npm", ["i"], { cwd: appDirectory });
       } catch (e) {
         // pass, nothing we can do here
