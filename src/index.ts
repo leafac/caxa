@@ -32,17 +32,25 @@ export default async function caxa({
   await fs.copy(directory, appDirectory);
 
   // if we did not copy a node modules folder, but there is a package or package-lock file, run npm install
-  if(!(await fs.pathExists(path.join(appDirectory, 'node_modules')))){
-      const packageLockPath = path.join(appDirectory, 'package-lock.json')
-      const packageJsonPath = path.join(appDirectory, 'package.json')
-      // prefer using package-lock, if available
-      if(await fs.pathExists(packageLockPath)){
-        console.log(`Installing deps from package-lock.json`)
-        await execa('npm', ['ci', '--prod'], { cwd: appDirectory })
-      } else if (await fs.pathExists(packageJsonPath)){
-        console.log(`Installing deps from package.json`)
-        await execa('npm', ['i', '--prod'], { cwd: appDirectory })
+  if (!(await fs.pathExists(path.join(appDirectory, "node_modules")))) {
+    const packageLockPath = path.join(appDirectory, "package-lock.json");
+    const packageJsonPath = path.join(appDirectory, "package.json");
+    // prefer using package-lock, if available
+    try {
+      if (await fs.pathExists(packageLockPath)) {
+        await execa("npm", ["ci"], { cwd: appDirectory }).catch();
+      } else if (await fs.pathExists(packageJsonPath)) {
+        throw null;
       }
+    } catch (err) {
+      try {
+        console.log(`install from package.json`, appDirectory);
+        await execa("npm", ["i"], { cwd: appDirectory });
+      } catch (e) {
+        // pass, nothing we can do here
+        console.log(e);
+      }
+    }
   }
   await execa("npm", ["prune", "--production"], { cwd: appDirectory });
   await execa("npm", ["dedupe"], { cwd: appDirectory });
