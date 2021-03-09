@@ -43,13 +43,12 @@ export default async function caxa({
     // prefer using package-lock, if available
     try {
       if (await fs.pathExists(packageLockPath)) {
-        await execa("npm", ["ci"], { cwd: appDirectory }).catch();
+        await execa("npm", ["ci"], { cwd: appDirectory });
       } else if (await fs.pathExists(packageJsonPath)) {
         throw null;
       }
     } catch (err) {
       try {
-        console.log(`install from package.json`, appDirectory);
         await execa("npm", ["i"], { cwd: appDirectory });
       } catch (e) {
         // pass, nothing we can do here
