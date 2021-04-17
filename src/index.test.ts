@@ -90,6 +90,45 @@ test("echo-command-line-parameters", async () => {
   `);
 });
 
+test("custom identifier", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters${process.platform === "win32" ? ".exe" : ""}`
+  );
+  const appDirectory = path.join(
+    os.tmpdir(),
+    "caxa",
+    "custom-echo-command-line-parameters",
+    "1.0.0"
+  );
+  await execa("ts-node", [
+    "src/index.ts",
+    "--directory",
+    "examples/echo-command-line-parameters",
+    "--command",
+    "{{caxa}}/node_modules/.bin/node",
+    "{{caxa}}/index.js",
+    "with custom identifier",
+    "--identifier",
+    "custom-echo-command-line-parameters/1.0.0",
+    "--output",
+    output,
+  ]);
+  expect(
+    (
+      await execa(output, [], {
+        all: true,
+      })
+    ).all
+  ).toMatchInlineSnapshot(`
+    "[
+      \\"with custom identifier\\"
+    ]"
+  `);
+  expect(await fs.pathExists(appDirectory)).toBe(true);
+  await fs.remove(appDirectory);
+});
+
 if (process.platform === "darwin")
   test("Echo Command Line Parameters.app", async () => {
     const output = path.join(

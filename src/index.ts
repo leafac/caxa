@@ -13,10 +13,12 @@ export default async function caxa({
   directory,
   command,
   output,
+  identifier,
 }: {
   directory: string;
   command: string[];
   output: string;
+  identifier?: string;
 }): Promise<void> {
   if (
     !(await fs.pathExists(directory)) ||
@@ -24,10 +26,12 @@ export default async function caxa({
   )
     throw new Error(`The path to package isn’t a directory: ‘${directory}’.`);
 
-  const identifier = path.join(
-    path.basename(path.basename(output, ".app"), ".exe"),
-    cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
-  );
+  if (!identifier) {
+    identifier = path.join(
+      path.basename(path.basename(output, ".app"), ".exe"),
+      cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
+    );
+  }
   const appDirectory = path.join(os.tmpdir(), "caxa", identifier);
   await fs.copy(directory, appDirectory);
   await execa("npm", ["prune", "--production"], { cwd: appDirectory });
@@ -116,6 +120,10 @@ if (require.main === module)
         "-o, --output <output>",
         "The path at which to produce the executable. Overwrites existing files/folders. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS Application Bundle."
       )
+      .option(
+        "-i, --identifier <identifier>",
+        "Sets a manual app identifier. By default it is a random id based by the basename of output file. Example echo-command-line-parameters/1.2.3"
+      )
       .version(require("../package.json").version)
       .addHelpText(
         "after",
@@ -137,13 +145,15 @@ Examples:
           directory,
           command,
           output,
+          identifier,
         }: {
           directory: string;
           command: string[];
           output: string;
+          identifier?: string;
         }) => {
           try {
-            await caxa({ directory, command, output });
+            await caxa({ directory, command, output, identifier });
           } catch (error) {
             console.error(error.message);
             process.exit(1);
