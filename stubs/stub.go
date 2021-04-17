@@ -75,6 +75,9 @@ func main() {
 	}
 
 	command := exec.Command(expandedCommand[0], append(expandedCommand[1:], os.Args[1:]...)...)
+	command.Env = os.Environ()
+	command.Env = append(command.Env, "CAXA_APP=" + footer.Identifier)
+	command.Env = append(command.Env, "CAXA_HOME=" + appDirectory)
 	command.Stdin = os.Stdin
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
