@@ -27,11 +27,11 @@ jobs:
           - os: macos
             runner: macos-latest
             output: macos
-            testbin: linux-test
+            testbin: macos-test
           - os: windows
             runner: windows-latest
             output: windows.exe
-            testbin: linux-test
+            testbin: windows-test.exe
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
