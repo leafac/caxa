@@ -1,0 +1,176 @@
+name: Build Binaries
+
+on:
+  push:
+    branches: "*"
+    tags:
+      - "v*"
+
+defaults:
+  run:
+    shell: bash
+    working-directory: stubs
+
+jobs:
+
+  build_x64_native:
+    name: Build ${{ matrix.os }} Binaries
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        os: [ubuntu, macos, windows]
+        include:
+          - os: ubuntu
+            runner: ubuntu-20.04
+            output: linux
+            testbin: linux-test
+          - os: macos
+            runner: macos-latest
+            output: macos
+            testbin: linux-test
+          - os: windows
+            runner: windows-latest
+            output: windows.exe
+            testbin: linux-test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16' 
+
+      - name: Build Binary
+        run: |
+          BIN=${{ matrix.output }}; CGO_ENABLED=0 go build -o $BIN stub.go && echo >> $BIN && echo "### CAXA ###" >> $BIN
+
+      - name: Test binary # Do a really simple smoke test of the stub binary
+        id: test
+        run: |
+          echo 'success' > test.txt
+          cp ${{ matrix.output }} ${{ matrix.testbin }}
+          chmod +x ${{ matrix.testbin }}
+          tar -czf - test.txt >> ${{ matrix.testbin }}
+          printf "\n{ \"identifier\": \"${{ matrix.testbin }}/temp\", \"command\": [\"cat\", \"{{caxa}}/test.txt\"] }" >> ${{ matrix.testbin }}
+          RESULT=$(./${{ matrix.testbin }} 2>&1)
+          echo "RESULT=$RESULT" >> $GITHUB_ENV
+          [ "$RESULT" = 'success' ] || exit 1
+
+      - name: Test Results
+        if: failure()
+        run: |
+          echo "${{ matrix.os }} binary test failed:"
+          echo ${{ env.RESULT }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: stubs
+          path: "stubs/${{ matrix.output }}"
+
+  build_arm:
+    name: Build ${{ matrix.platform }} Binaries
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        platform: [linux/arm/v6, linux/arm/v7, linux/arm64/v8]
+        include:
+          - platform: linux/arm/v6
+            output: linux-armv6
+            testbin: linux-armv6-test
+            docker_image: arm32v6/golang:1.16-alpine # There is only an alpine image for this architecture
+          - platform: linux/arm/v7
+            output: linux-armv7
+            testbin: linux-armv7-test
+            docker_image: arm32v7/golang:1.16
+          - platform: linux/arm64/v8
+            output: linux-arm64
+            testbin: linux-arm64-test
+            docker_image: arm64v8/golang:1.16
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+
+      - name: Enable Docker Experimental Features # Required to use `docker run --platform` at time of commit
+        run: |
+          echo $'{\n  "experimental": true\n}' | sudo tee /etc/docker/daemon.json
+          mkdir -p ~/.docker
+          echo $'{\n  "experimental": "enabled"\n}' | sudo tee ~/.docker/config.json
+          sudo service docker restart
+          docker version -f '{{.Client.Experimental}}'
+          docker version -f '{{.Server.Experimental}}'
+
+      - name: Build binary 
+        run: |
+          docker run --rm --platform ${{ matrix.platform }} -v $PWD:/usr/src/myapp -w /usr/src/myapp ${{ matrix.docker_image }}  sh -c 'CGO_ENABLED=0 go build -o ${{ matrix.output }} stub.go && echo "" >> ${{ matrix.output }} && echo "### CAXA ###" >> ${{ matrix.output }}'
+
+      - name: Test binary # Do a really simple smoke test of the stub binary
+        run: |
+          echo 'success' > test.txt
+          cp ${{ matrix.output }} ${{ matrix.testbin }}
+          chmod +x ${{ matrix.testbin }}
+          tar -czf - test.txt >> ${{ matrix.testbin }}
+          printf "\n{ \"identifier\": \"${{ matrix.testbin }}/temp\", \"command\": [\"cat\", \"{{caxa}}/test.txt\"] }" >> ${{ matrix.testbin }}
+          RESULT=$(docker run --rm --platform ${{ matrix.platform }} -v "$PWD":/usr/src/myapp -w /usr/src/myapp ${{ matrix.docker_image }} sh -c  "./${{ matrix.testbin }} 2>&1")
+          echo "RESULT=$RESULT" >> $GITHUB_ENV
+          [ "$RESULT" = 'success' ] || exit 1
+
+      - name: Test Results
+        if: failure()
+        run: |
+          echo "${{ matrix.platform }} binary test failed:"
+          echo ${{ env.RESULT }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: stubs
+          path: "stubs/${{ matrix.output }}"
+
+  job_upload:
+    name: Upload Release Assets
+    needs: [build_x64_native, build_arm]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: ./
+
+      - name: File checksums
+        run: |
+          rm stub.go
+          sha256sum * > sha256sums.txt
+          cat sha256sums.txt
+          file *
+
+      - name: Upload artifacts # Upload checksums to artifact. Useful if not a tagged release.
+        uses: actions/upload-artifact@v2
+        with:
+          name: stubs
+          path: "stubs/sha256sums.txt"
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            stubs/linux
+            stubs/linux-arm64
+            stubs/linux-armv6
+            stubs/linux-armv7
+            stubs/macos
+            stubs/windows.exe
+            stubs/sha256sums.txt
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
