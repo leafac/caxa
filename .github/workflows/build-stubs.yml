@@ -1,18 +1,9 @@
-name: Build Binaries
-
-on:
-  push:
-    branches: "*"
-    tags:
-      - "v*"
-
 defaults:
   run:
     shell: bash
     working-directory: stubs
 
 jobs:
-
   build_x64_native:
     name: Build ${{ matrix.os }} Binaries
     runs-on: ${{ matrix.runner }}
