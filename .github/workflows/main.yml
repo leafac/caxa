@@ -10,7 +10,7 @@ jobs:
           - platform: darwin
             runner: macos-latest
           - platform: linux
-            runner: linux-latest
+            runner: ubuntu-latest
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v2
