@@ -12,6 +12,7 @@ jobs:
           go-version: "^1.16"
       # If you change the build commands below, also change on package.json for people who are compiling locally.
       - run: CGO_ENABLED=0 go build -o node_modules/.bin/caxa-stub src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub
+        shell: bash
       - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o node_modules/.bin/caxa-stub-arm src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub-arm
         if: matrix.os == 'macos'
       - uses: actions/upload-artifact@v2
