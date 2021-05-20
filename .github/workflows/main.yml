@@ -20,19 +20,26 @@ jobs:
       # If you change the build commands below, also change on package.json for people who are compiling locally.
       - run: CGO_ENABLED=0 go build -o node_modules/.bin/caxa-stub src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub
         shell: bash
-      - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o node_modules/.bin/caxa-stub-arm64 src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub-arm64
-        if: matrix.platform == 'darwin'
       - uses: actions/upload-artifact@v2
         with:
           name: stub--${{ matrix.platform }}--x64
           path: "node_modules/.bin/caxa-stub"
-      - uses: actions/upload-artifact@v2
-        if: matrix.platform == 'darwin'
-        with:
-          name: stub--${{ matrix.platform }}--arm64
-          path: "node_modules/.bin/caxa-stub-arm64"
 
-  build-arm:
+  build-darwin-arm:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "^1.16"
+      # If you change the build commands below, also change on package.json for people who are compiling locally.
+      - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o node_modules/.bin/caxa-stub src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub
+      - uses: actions/upload-artifact@v2
+        with:
+          name: stub--darwin--arm64
+          path: "node_modules/.bin/caxa-stub"
+
+  build-linux-arm:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -85,18 +92,16 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm ci
       - uses: actions/download-artifact@v2
         with:
           name: stub--${{ matrix.platform }}--x64
-          path: "node_modules/.bin/caxa-stub"
       - run: |
-          find .
-          file node_modules/.bin/caxa-stub
-      # - run: npm test
+          npm ci
+          mv caxa-stub node_modules/.bin/caxa-stub
+          npm test
 
-  test-arm:
-    needs: build-arm
+  test-linux-arm:
+    needs: build-linux-arm
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -130,9 +135,69 @@ jobs:
       - run: |
           docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'npm install-ci-test'
 
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test-x64, test-linux-arm, build-darwin-arm]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: stub--win32--x64
+          path: stub--win32--x64
+      - uses: actions/download-artifact@v2
+        with:
+          name: stub--darwin--x64
+          path: stub--darwin--x64
+      - uses: actions/download-artifact@v2
+        with:
+          name: stub--linux--x64
+          path: stub--linux--x64
+      - uses: actions/download-artifact@v2
+        with:
+          name: stub--darwin--arm64
+          path: stub--darwin--arm64
+      - uses: actions/download-artifact@v2
+        with:
+          name: stub--linux--arm--6
+          path: stub--linux--arm--6
+      - uses: actions/download-artifact@v2
+        with:
+          name: stub--linux--arm--7
+          path: stub--linux--arm--7
+      - uses: actions/download-artifact@v2
+        with:
+          name: stub--linux--arm64
+          path: stub--linux--arm64
+      - run: |
+          for artifact in *
+          do
+            (cd $artifact && shasum -a 256 caxa-stub > $artifact.txt)
+          done
+      - name: Upload artifacts # Upload checksums to artifact. Useful if not a tagged release.
+        uses: actions/upload-artifact@v2
+        with:
+          name: stubs
+          path: "stubs/sha256sums.txt"
+
+      - name: Release
+        uses: action/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            stubs/linux
+            stubs/linux-arm64
+            stubs/linux-armv6
+            stubs/linux-armv7
+            stubs/macos
+            stubs/windows.exe
+            stubs/sha256sums.txt
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   npm-publish:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: [test-x64, test-arm]
+    needs: release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
