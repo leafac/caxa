@@ -1,10 +1,17 @@
 on: push
 jobs:
-  build-intel:
+  build-x64:
     strategy:
       matrix:
-        os: [ubuntu, macos, windows]
-    runs-on: ${{ matrix.os }}-latest
+        platform: [win32, darwin, linux]
+        include:
+          - platform: win32
+            runner: ubuntu-latest
+          - platform: darwin
+            runner: macos-latest
+          - platform: linux
+            runner: windows-latest
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
@@ -14,15 +21,15 @@ jobs:
       - run: CGO_ENABLED=0 go build -o node_modules/.bin/caxa-stub src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub
         shell: bash
       - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o node_modules/.bin/caxa-stub-arm64 src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub-arm64
-        if: matrix.os == 'macos'
+        if: matrix.platform == 'darwin'
       - uses: actions/upload-artifact@v2
         with:
-          name: stub--${{ matrix.os }}--amd64
+          name: stub--${{ matrix.platform }}--x64
           path: "node_modules/.bin/caxa-stub"
       - uses: actions/upload-artifact@v2
-        if: matrix.os == 'macos'
+        if: matrix.platform == 'darwin'
         with:
-          name: stub--${{ matrix.os }}--arm64
+          name: stub--${{ matrix.platform }}--arm64
           path: "node_modules/.bin/caxa-stub-arm64"
 
   # test:
