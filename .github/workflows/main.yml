@@ -89,7 +89,9 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: stub--${{ matrix.platform }}--x64
-      - run: file node_modules/.bin/caxa-stub
+      - run: |
+          find .
+          file node_modules/.bin/caxa-stub
       # - run: npm test
 
   test-arm:
