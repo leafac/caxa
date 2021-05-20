@@ -6,11 +6,11 @@ jobs:
         platform: [win32, darwin, linux]
         include:
           - platform: win32
-            runner: ubuntu-latest
+            runner: windows-latest
           - platform: darwin
             runner: macos-latest
           - platform: linux
-            runner: windows-latest
+            runner: linux-latest
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v2
