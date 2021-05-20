@@ -92,8 +92,8 @@ jobs:
       - run: file node_modules/.bin/caxa-stub
       # - run: npm test
 
-
   test-arm:
+    needs: build-arm
     runs-on: ubuntu-latest
     strategy:
       matrix:
