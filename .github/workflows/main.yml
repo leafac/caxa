@@ -127,16 +127,16 @@ jobs:
       - run: |
           docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'CGO_ENABLED=0 go build -o node_modules/.bin/caxa-stub src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub'
 
-  # npm-publish:
-  #   if: startsWith(github.ref, 'refs/tags/v')
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - uses: actions/setup-node@v1
-  #       with:
-  #         node-version: 15
-  #         registry-url: https://registry.npmjs.org/
-  #     - run: npm ci && npm publish
-  #       env:
-  #         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  npm-publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test-x64, test-arm]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+      - run: npm ci && npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
