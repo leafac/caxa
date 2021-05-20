@@ -85,7 +85,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install-ci
+      - run: npm ci
       - uses: actions/download-artifact@v2
         with:
           name: stub--${{ matrix.platform }}--x64
