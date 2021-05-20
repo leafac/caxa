@@ -68,6 +68,7 @@ jobs:
           path: "node_modules/.bin/caxa-stub"
 
   test-x64:
+    needs: build-x64
     strategy:
       matrix:
         platform: [win32, darwin, linux]
