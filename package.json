@@ -18,7 +18,7 @@
   "bugs": "https://github.com/leafac/caxa/issues",
   "homepage": "https://github.com/leafac/caxa#readme",
   "scripts": {
-    "test": "prettier --check \"src/**/*\" --end-of-line auto && jest",
+    "test": "prettier --check \"src/**/*.ts\" --end-of-line auto && jest",
     "prepare": "tsc",
     "build:stub": "cross-env CGO_ENABLED=0 go build -o node_modules/.bin/caxa-stub src/stub.go && shx echo CAXACAXACAXA >> node_modules/.bin/caxa-stub"
   },
