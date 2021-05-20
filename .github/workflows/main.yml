@@ -13,7 +13,7 @@ jobs:
       # If you change the build commands below, also change on package.json for people who are compiling locally.
       - run: CGO_ENABLED=0 go build -o node_modules/.bin/caxa-stub src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub
         shell: bash
-      - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o node_modules/.bin/caxa-stub-arm src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub-arm
+      - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o node_modules/.bin/caxa-stub-arm64 src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub-arm64
         if: matrix.os == 'macos'
       - uses: actions/upload-artifact@v2
         with:
