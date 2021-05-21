@@ -18,12 +18,12 @@ jobs:
         with:
           go-version: "^1.16"
       # If you change the build commands below, also change on package.json for people who are compiling locally.
-      - run: CGO_ENABLED=0 go build -o node_modules/.bin/caxa-stub src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub
+      - run: CGO_ENABLED=0 go build -o stub--${{ matrix.platform }}--x64 src/stub.go && echo CAXACAXACAXA >> stub--${{ matrix.platform }}--x64
         shell: bash
       - uses: actions/upload-artifact@v2
         with:
-          name: stub--${{ matrix.platform }}--x64
-          path: "node_modules/.bin/caxa-stub"
+          name: stubs
+          path: stub--${{ matrix.platform }}--x64
 
   build-darwin-arm:
     runs-on: macos-latest
@@ -33,11 +33,11 @@ jobs:
         with:
           go-version: "^1.16"
       # If you change the build commands below, also change on package.json for people who are compiling locally.
-      - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o node_modules/.bin/caxa-stub src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub
+      - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o stub--darwin--arm64 src/stub.go && echo CAXACAXACAXA >> stub--darwin--arm64
       - uses: actions/upload-artifact@v2
         with:
-          name: stub--darwin--arm64
-          path: "node_modules/.bin/caxa-stub"
+          name: stubs
+          path: stub--darwin--arm64
 
   build-linux-arm:
     runs-on: ubuntu-latest
@@ -68,17 +68,18 @@ jobs:
           docker version -f '{{.Client.Experimental}}'
           docker version -f '{{.Server.Experimental}}'
       - run: |
-          docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'CGO_ENABLED=0 go build -o node_modules/.bin/caxa-stub src/stub.go && echo CAXACAXACAXA >> node_modules/.bin/caxa-stub'
+          docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'CGO_ENABLED=0 go build -o stub--linux--${{ matrix.architecture }} src/stub.go && echo CAXACAXACAXA >> stub--linux--${{ matrix.architecture }}'
       - uses: actions/upload-artifact@v2
         with:
-          name: stub--linux--${{ matrix.architecture }}
-          path: "node_modules/.bin/caxa-stub"
+          name: stubs
+          path: stub--linux--${{ matrix.architecture }}
 
   test-x64:
     needs: build-x64
     strategy:
       matrix:
         platform: [win32, darwin, linux]
+        node-version: [14, 15, 16]
         include:
           - platform: win32
             runner: windows-latest
@@ -94,10 +95,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - uses: actions/download-artifact@v2
         with:
-          name: stub--${{ matrix.platform }}--x64
+          name: stubs
       - run: |
           npm ci
-          mv caxa-stub node_modules/.bin/caxa-stub
+          mv stub--${{ matrix.platform }}--x64 stub
           npm test
 
   test-linux-arm:
@@ -131,89 +132,38 @@ jobs:
           docker version -f '{{.Server.Experimental}}'
       - uses: actions/download-artifact@v2
         with:
-          name: stub--linux--${{ matrix.architecture }}
-      # - run: mv caxa-stub node_modules/.bin/caxa-stub
-      - run: docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'npm ci && mv caxa-stub node_modules/.bin/caxa-stub && npm test'
+          name: stubs
+      - run: docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'npm ci && mv stub--linux--${{ matrix.architecture }} stub && npm test'
 
-  release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: [test-x64, test-linux-arm, build-darwin-arm]
+  checksums:
+    needs: [build-x64, build-darwin-arm, build-linux-arm]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v2
         with:
-          name: stub--win32--x64
-          path: stub--win32--x64
-      - uses: actions/download-artifact@v2
+          name: stubs
+      - run: shasum -a 256 * | tee checksums.txt
+      - uses: actions/upload-artifact@v2
         with:
-          name: stub--darwin--x64
-          path: stub--darwin--x64
-      - uses: actions/download-artifact@v2
-        with:
-          name: stub--linux--x64
-          path: stub--linux--x64
-      - uses: actions/download-artifact@v2
-        with:
-          name: stub--darwin--arm64
-          path: stub--darwin--arm64
-      - uses: actions/download-artifact@v2
-        with:
-          name: stub--linux--arm--6
-          path: stub--linux--arm--6
-      - uses: actions/download-artifact@v2
-        with:
-          name: stub--linux--arm--7
-          path: stub--linux--arm--7
-      - uses: actions/download-artifact@v2
-        with:
-          name: stub--linux--arm64
-          path: stub--linux--arm64
-      - run: | # We should upload the checksums to their respective artifacts That would require hardcoded uploads like the downloads above.
-          for artifact in *
-          do
-            (cd $artifact && shasum -a 256 caxa-stub > $artifact.txt && cat $artifact.txt) 
-          done
-      # - name: Upload artifacts # Upload checksums to artifact. Useful if not a tagged release
-      #   uses: actions/upload-artifact@v2
-      #   with:
-      #     name: stubs
-      #     path: "stubs/sha256sums.txt"
+          name: checksums
+          path: checksums.txt
 
-      - name: Release # We need to rename all the files before uploading this way. 
-        uses: action/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test-x64, test-linux-arm, build-darwin-arm, checksums]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
         with:
-          files: |
-            stubs/linux
-            stubs/linux-arm64
-            stubs/linux-armv6
-            stubs/linux-armv7
-            stubs/macos
-            stubs/windows.exe
-            stubs/sha256sums.txt
-          draft: true
+          name: stubs
+      - uses: actions/download-artifact@v2
+        with:
+          name: checksums
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: "*"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # - name: Create Release
-      #   if: startsWith( github.ref, 'refs/tags/' ) # Run on tags only.
-      #   id: create_release
-      #   uses: actions/create-release@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     release_name: Release ${{ github.ref }}
-      #     draft: true
-
-      # - name: Upload Windows Stub
-      #   if: startsWith( github.ref, 'refs/tags/' ) # Run on tags only.
-      #   uses: actions/upload-release-asset@v1
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   with:
-      #     upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-      #     asset_path: ./stub--win32--x64/caxa-stub
-      #     asset_name: <new stub name>
 
   npm-publish: # Needs to download the checksums
     if: startsWith(github.ref, 'refs/tags/v')
@@ -225,6 +175,9 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
+      - uses: actions/download-artifact@v2
+        with:
+          name: checksums
       - run: npm ci && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
