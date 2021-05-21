@@ -1,28 +1,184 @@
 on: push
 jobs:
-  test:
+  build-x64:
     strategy:
       matrix:
-        os: [windows, macos, ubuntu]
-        node-version: [14, 15]
-    runs-on: ${{ matrix.os }}-latest
+        platform: [win32, darwin, linux]
+        include:
+          - platform: win32
+            runner: windows-latest
+          - platform: darwin
+            runner: macos-latest
+          - platform: linux
+            runner: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "^1.16"
+      # If you change the build commands below, also change on package.json for people who are compiling locally.
+      - run: CGO_ENABLED=0 go build -o stub--${{ matrix.platform }}--x64 src/stub.go && echo CAXACAXACAXA >> stub--${{ matrix.platform }}--x64
+        shell: bash
+      - uses: actions/upload-artifact@v2
+        with:
+          name: stubs
+          path: stub--${{ matrix.platform }}--x64
+
+  build-darwin-arm:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: "^1.16"
+      # If you change the build commands below, also change on package.json for people who are compiling locally.
+      - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o stub--darwin--arm64 src/stub.go && echo CAXACAXACAXA >> stub--darwin--arm64
+      - uses: actions/upload-artifact@v2
+        with:
+          name: stubs
+          path: stub--darwin--arm64
+
+  build-linux-arm:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        architecture: [arm--6, arm--7, arm64]
+        include:
+          - architecture: arm--6
+            docker-platform: linux/arm/v6
+            docker-image: arm32v6/golang:1.16-alpine # There is only an alpine image for this architecture
+          - architecture: arm--7
+            docker-platform: linux/arm/v7
+            docker-image: arm32v7/golang:1.16
+          - architecture: arm64
+            docker-platform: linux/arm64/v8
+            docker-image: arm64v8/golang:1.16
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+      - name: Enable Docker Experimental Features (Required to use `docker run --platform`)
+        run: |
+          echo $'{\n  "experimental": true\n}' | sudo tee /etc/docker/daemon.json
+          mkdir -p ~/.docker
+          echo $'{\n  "experimental": "enabled"\n}' | sudo tee ~/.docker/config.json
+          sudo service docker restart
+          docker version -f '{{.Client.Experimental}}'
+          docker version -f '{{.Server.Experimental}}'
+      - run: |
+          docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'CGO_ENABLED=0 go build -o stub--linux--${{ matrix.architecture }} src/stub.go && echo CAXACAXACAXA >> stub--linux--${{ matrix.architecture }}'
+      - uses: actions/upload-artifact@v2
+        with:
+          name: stubs
+          path: stub--linux--${{ matrix.architecture }}
+
+  test-x64:
+    needs: build-x64
+    strategy:
+      matrix:
+        platform: [win32, darwin, linux]
+        node-version: [14, 15, 16]
+        include:
+          - platform: win32
+            runner: windows-latest
+          - platform: darwin
+            runner: macos-latest
+          - platform: linux
+            runner: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm install-ci-test
+      - uses: actions/download-artifact@v2
+        with:
+          name: stubs
+      - run: |
+          npm ci
+          mv stub--${{ matrix.platform }}--x64 stub
+          npm test
+
+  test-linux-arm:
+    needs: build-linux-arm
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        architecture: [arm--6, arm--7, arm64]
+        include:
+          - architecture: arm--6
+            docker-platform: linux/arm
+            docker-image: arm32v6/node:16-alpine # There is only an alpine image
+          - architecture: arm--7
+            docker-platform: linux/arm
+            docker-image: arm32v7/node:16
+          - architecture: arm64
+            docker-platform: linux/arm64
+            docker-image: arm64v8/node:16
+    steps:
+      - uses: actions/checkout@v2
+      - uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+      - name: Enable Docker Experimental Features (Required to use `docker run --platform`)
+        run: |
+          echo $'{\n  "experimental": true\n}' | sudo tee /etc/docker/daemon.json
+          mkdir -p ~/.docker
+          echo $'{\n  "experimental": "enabled"\n}' | sudo tee ~/.docker/config.json
+          sudo service docker restart
+          docker version -f '{{.Client.Experimental}}'
+          docker version -f '{{.Server.Experimental}}'
+      - uses: actions/download-artifact@v2
+        with:
+          name: stubs
+      - run: docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'npm ci && mv stub--linux--${{ matrix.architecture }} stub && npm test'
+
+  checksums:
+    needs: [build-x64, build-darwin-arm, build-linux-arm]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: stubs
+      - run: shasum -a 256 * | tee checksums.txt
+      - uses: actions/upload-artifact@v2
+        with:
+          name: checksums
+          path: checksums.txt
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test-x64, test-linux-arm, build-darwin-arm, checksums]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: stubs
+      - uses: actions/download-artifact@v2
+        with:
+          name: checksums
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: "*"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   npm-publish:
     if: startsWith(github.ref, 'refs/tags/v')
-    needs: test
+    needs: release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: 15
+          node-version: 16
           registry-url: https://registry.npmjs.org/
-      - run: npm ci && npm publish
+      - uses: actions/download-artifact@v2
+        with:
+          name: checksums
+      - run: npm ci && find .
+        # TODO: - run: npm ci && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

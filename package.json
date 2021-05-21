@@ -18,9 +18,9 @@
   "bugs": "https://github.com/leafac/caxa/issues",
   "homepage": "https://github.com/leafac/caxa#readme",
   "scripts": {
-    "test": "prettier --check \"src/**/*\" --end-of-line auto && jest",
+    "test": "prettier --check \"src/**/*.ts\" --end-of-line auto && jest",
     "prepare": "tsc",
-    "stubs": "cd stubs && shx rm -f windows.exe macos linux && cross-env GOOS=windows go build -o windows.exe stub.go && shx echo >> windows.exe && shx echo \"### CAXA ###\" >> windows.exe && cross-env GOOS=darwin go build -o macos stub.go && shx echo >> macos && shx echo \"### CAXA ###\" >> macos && cross-env GOOS=linux go build -o linux stub.go && shx echo >> linux && shx echo \"### CAXA ###\" >> linux"
+    "build:stub": "cross-env CGO_ENABLED=0 go build -o stub src/stub.go && shx echo CAXACAXACAXA >> stub"
   },
   "dependencies": {
     "archiver": "^5.2.0",
