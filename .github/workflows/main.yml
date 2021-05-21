@@ -59,7 +59,7 @@ jobs:
       - uses: docker/setup-qemu-action@v1
         with:
           platforms: all
-      - name: Enable Docker Experimental Features (Required to use `docker run --platform` at time of commit)
+      - name: Enable Docker Experimental Features (Required to use `docker run --platform`)
         run: |
           echo $'{\n  "experimental": true\n}' | sudo tee /etc/docker/daemon.json
           mkdir -p ~/.docker
@@ -108,20 +108,20 @@ jobs:
         architecture: [arm--6, arm--7, arm64]
         include:
           - architecture: arm--6
-            docker-platform: linux/arm/v6
-            docker-image: arm32v6/golang:1.16-alpine # There is only an alpine image for this architecture
+            docker-platform: linux/arm
+            docker-image: arm32v6/node:16-alpine # There is only an alpine image
           - architecture: arm--7
-            docker-platform: linux/arm/v7
-            docker-image: arm32v7/golang:1.16
+            docker-platform: linux/arm
+            docker-image: arm32v7/node:16
           - architecture: arm64
-            docker-platform: linux/arm64/v8
-            docker-image: arm64v8/golang:1.16
+            docker-platform: linux/arm64
+            docker-image: arm64v8/node:16
     steps:
       - uses: actions/checkout@v2
       - uses: docker/setup-qemu-action@v1
         with:
           platforms: all
-      - name: Enable Docker Experimental Features (Required to use `docker run --platform` at time of commit)
+      - name: Enable Docker Experimental Features (Required to use `docker run --platform`)
         run: |
           echo $'{\n  "experimental": true\n}' | sudo tee /etc/docker/daemon.json
           mkdir -p ~/.docker
@@ -132,8 +132,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: stub--linux--${{ matrix.architecture }}
-      - run: |
-          docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'npm install-ci-test'
+      # - run: mv caxa-stub node_modules/.bin/caxa-stub
+      - run: docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'npm ci && mv caxa-stub node_modules/.bin/caxa-stub && npm test'
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -168,18 +168,18 @@ jobs:
         with:
           name: stub--linux--arm64
           path: stub--linux--arm64
-      - run: |
+      - run: | # We should upload the checksums to their respective artifacts That would require hardcoded uploads like the downloads above.
           for artifact in *
           do
-            (cd $artifact && shasum -a 256 caxa-stub > $artifact.txt)
+            (cd $artifact && shasum -a 256 caxa-stub > $artifact.txt && cat $artifact.txt) 
           done
-      - name: Upload artifacts # Upload checksums to artifact. Useful if not a tagged release.
-        uses: actions/upload-artifact@v2
-        with:
-          name: stubs
-          path: "stubs/sha256sums.txt"
+      # - name: Upload artifacts # Upload checksums to artifact. Useful if not a tagged release
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: stubs
+      #     path: "stubs/sha256sums.txt"
 
-      - name: Release
+      - name: Release # We need to rename all the files before uploading this way. 
         uses: action/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
@@ -195,7 +195,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  npm-publish:
+  npm-publish: # Needs to download the checksums
     if: startsWith(github.ref, 'refs/tags/v')
     needs: release
     runs-on: ubuntu-latest
