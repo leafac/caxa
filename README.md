@@ -204,14 +204,14 @@ The caxa self-extracting archives work by putting together three parts: 1. a stu
 
 ```
 STUB
-### CAXA ###
+CAXACAXACAXA
 ARCHIVE
 FOOTER
 ```
 
-The `STUB` and the `ARCHIVE` are separated by the `### CAXA ###` string. And the `ARCHIVE` and the `FOOTER` are separated by a newline. This layout allows caxa to find the footer by simply looking backward from the end of the file until it reaches a newline. And if this is the first time you’re running the caxa executable and the archive needs to be uncompressed, then caxa may find the beginning of the `ARCHIVE` by looking forward from the beginning until it reaches the `### CAXA ###` separator.
+The `STUB` and the `ARCHIVE` are separated by the `CAXACAXACAXA` string. And the `ARCHIVE` and the `FOOTER` are separated by a newline. This layout allows caxa to find the footer by simply looking backward from the end of the file until it reaches a newline. And if this is the first time you’re running the caxa executable and the archive needs to be uncompressed, then caxa may find the beginning of the `ARCHIVE` by looking forward from the beginning until it reaches the `CAXACAXACAXA` separator.
 
-Build a binary with caxa and inspect it yourself in a text editor (Visual Studio Code asks you to confirm that you want to open a binary, but works fine after that). You should be able to find the `### CAXA ###` separator between the `STUB` and the `ARCHIVE`, as well as the `FOOTER` at the end.
+Build a binary with caxa and inspect it yourself in a text editor (Visual Studio Code asks you to confirm that you want to open a binary, but works fine after that). You should be able to find the `CAXACAXACAXA` separator between the `STUB` and the `ARCHIVE`, as well as the `FOOTER` at the end.
 
 Let’s examine each of the parts in detail:
 
@@ -423,7 +423,7 @@ Anyway, here’s what you could use to build a stub in C:
 
 #### References on the Structure of Executables
 
-A more principled way of building the self-extracting archive is to not append data at the end of the file, but manipulate the stub binary as a data structure. It’s actually three data structures: Portable Executables (Windows), Mach-O (macOS), and ELF (Linux). This idea was abandoned because it’s more work for the packager and for the stub—the `### CAXA ###` separator is a hack that works well enough. But we may have to revisit this to make the executables signable. You can even manipulate binaries with Go standard libraries…
+A more principled way of building the self-extracting archive is to not append data at the end of the file, but manipulate the stub binary as a data structure. It’s actually three data structures: Portable Executables (Windows), Mach-O (macOS), and ELF (Linux). This idea was abandoned because it’s more work for the packager and for the stub—the `CAXACAXACAXA` separator is a hack that works well enough. But we may have to revisit this to make the executables signable. You can even manipulate binaries with Go standard libraries…
 
 Anyway, here are some references on the subject:
 
