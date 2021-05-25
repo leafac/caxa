@@ -72,21 +72,7 @@ export default async function caxa({
   } else {
     if (process.platform === "win32" && !output.endsWith(".exe"))
       throw new Error("An Windows executable must end in ‘.exe’.");
-    await fs.copyFile(
-      path.join(
-        __dirname,
-        "../stubs",
-        ({
-          win32: "windows.exe",
-          darwin: "macos",
-          linux: "linux",
-        } as { [platform: string]: string })[process.platform] ??
-          (() => {
-            throw new Error("caxa isn’t supported on this operating system.");
-          })()
-      ),
-      output
-    );
+    await fs.copyFile(path.join(__dirname, "../stub"), output);
     const archive = archiver("tar", { gzip: true });
     const archiveStream = fs.createWriteStream(output, { flags: "a" });
     archive.pipe(archiveStream);
