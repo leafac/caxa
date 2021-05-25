@@ -12,8 +12,9 @@ const testsDirectory = path.join(
   "caxa-tests",
   cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
 );
+const appsDirectory = path.join(os.tmpdir(), "caxa");
 beforeAll(async () => {
-  await fs.remove(path.join(os.tmpdir(), "caxa"));
+  await fs.remove(appsDirectory);
   await fs.remove(testsDirectory);
   await fs.ensureDir(testsDirectory);
 });
@@ -23,11 +24,7 @@ test("echo-command-line-parameters", async () => {
     testsDirectory,
     `echo-command-line-parameters${process.platform === "win32" ? ".exe" : ""}`
   );
-  const appDirectory = path.join(
-    os.tmpdir(),
-    "caxa",
-    "echo-command-line-parameters"
-  );
+  const appDirectory = path.join(appsDirectory, "echo-command-line-parameters");
   await execa("ts-node", [
     "src/index.ts",
     "--directory",
@@ -133,7 +130,7 @@ test("native-modules", async () => {
     testsDirectory,
     `native-modules${process.platform === "win32" ? ".exe" : ""}`
   );
-  const appDirectory = path.join(os.tmpdir(), "caxa", "native-modules");
+  const appDirectory = path.join(appsDirectory, "native-modules");
   await execa("npm", ["install"], { cwd: "examples/native-modules" });
   await execa("ts-node", [
     "src/index.ts",
@@ -176,7 +173,7 @@ test("false", async () => {
     testsDirectory,
     `false${process.platform === "win32" ? ".exe" : ""}`
   );
-  const appDirectory = path.join(os.tmpdir(), "caxa", "false");
+  const appDirectory = path.join(appsDirectory, "false");
   await execa("ts-node", [
     "src/index.ts",
     "--directory",

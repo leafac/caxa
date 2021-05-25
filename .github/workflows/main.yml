@@ -18,7 +18,7 @@ jobs:
         with:
           go-version: "^1.16"
       # If you change the build commands below, also change on package.json for people who are compiling locally.
-      - run: CGO_ENABLED=0 go build -o stub--${{ matrix.platform }}--x64 src/stub.go && echo CAXACAXACAXA >> stub--${{ matrix.platform }}--x64
+      - run: CGO_ENABLED=0 go build -o stub--${{ matrix.platform }}--x64 src/stub.go && echo >> stub--${{ matrix.platform }}--x64 && echo CAXACAXACAXA >> stub--${{ matrix.platform }}--x64
         shell: bash
       - uses: actions/upload-artifact@v2
         with:
@@ -33,7 +33,7 @@ jobs:
         with:
           go-version: "^1.16"
       # If you change the build commands below, also change on package.json for people who are compiling locally.
-      - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o stub--darwin--arm64 src/stub.go && echo CAXACAXACAXA >> stub--darwin--arm64
+      - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o stub--darwin--arm64 src/stub.go && echo >> stub--darwin--arm64 && echo CAXACAXACAXA >> stub--darwin--arm64
       - uses: actions/upload-artifact@v2
         with:
           name: stubs
@@ -68,7 +68,7 @@ jobs:
           docker version -f '{{.Client.Experimental}}'
           docker version -f '{{.Server.Experimental}}'
       - run: |
-          docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'CGO_ENABLED=0 go build -o stub--linux--${{ matrix.architecture }} src/stub.go && echo CAXACAXACAXA >> stub--linux--${{ matrix.architecture }}'
+          docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'CGO_ENABLED=0 go build -o stub--linux--${{ matrix.architecture }} src/stub.go && echo >> stub--linux--${{ matrix.architecture }} && echo CAXACAXACAXA >> stub--linux--${{ matrix.architecture }}'
       - uses: actions/upload-artifact@v2
         with:
           name: stubs
