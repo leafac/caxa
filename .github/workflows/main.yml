@@ -6,19 +6,22 @@ jobs:
         platform: [win32, darwin, linux]
         include:
           - platform: win32
-            runner: windows-latest
+            runs-on: windows-latest
           - platform: darwin
-            runner: macos-latest
+            runs-on: macos-latest
           - platform: linux
-            runner: ubuntu-latest
-    runs-on: ${{ matrix.runner }}
+            runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
         with:
           go-version: "^1.16"
       # If you change the build commands below, also change on package.json for people who are compiling locally.
-      - run: CGO_ENABLED=0 go build -o stub--${{ matrix.platform }}--x64 src/stub.go && echo >> stub--${{ matrix.platform }}--x64 && echo CAXACAXACAXA >> stub--${{ matrix.platform }}--x64
+      - run: |
+          CGO_ENABLED=0 go build -o stub--${{ matrix.platform }}--x64 src/stub.go
+          echo >> stub--${{ matrix.platform }}--x64
+          echo CAXACAXACAXA >> stub--${{ matrix.platform }}--x64
         shell: bash
       - uses: actions/upload-artifact@v2
         with:
@@ -33,7 +36,10 @@ jobs:
         with:
           go-version: "^1.16"
       # If you change the build commands below, also change on package.json for people who are compiling locally.
-      - run: CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o stub--darwin--arm64 src/stub.go && echo >> stub--darwin--arm64 && echo CAXACAXACAXA >> stub--darwin--arm64
+      - run: |
+          CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o stub--darwin--arm64 src/stub.go
+          echo >> stub--darwin--arm64
+          echo CAXACAXACAXA >> stub--darwin--arm64
       - uses: actions/upload-artifact@v2
         with:
           name: stubs
@@ -68,7 +74,9 @@ jobs:
           docker version -f '{{.Client.Experimental}}'
           docker version -f '{{.Server.Experimental}}'
       - run: |
-          docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'CGO_ENABLED=0 go build -o stub--linux--${{ matrix.architecture }} src/stub.go && echo >> stub--linux--${{ matrix.architecture }} && echo CAXACAXACAXA >> stub--linux--${{ matrix.architecture }}'
+          docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'CGO_ENABLED=0 go build -o stub--linux--${{ matrix.architecture }} src/stub.go'
+          echo >> stub--linux--${{ matrix.architecture }}
+          echo CAXACAXACAXA >> stub--linux--${{ matrix.architecture }}
       - uses: actions/upload-artifact@v2
         with:
           name: stubs
@@ -82,12 +90,12 @@ jobs:
         node-version: [14, 15, 16]
         include:
           - platform: win32
-            runner: windows-latest
+            runs-on: windows-latest
           - platform: darwin
-            runner: macos-latest
+            runs-on: macos-latest
           - platform: linux
-            runner: ubuntu-latest
-    runs-on: ${{ matrix.runner }}
+            runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
@@ -97,9 +105,8 @@ jobs:
         with:
           name: stubs
       - run: |
-          npm ci
           mv stub--${{ matrix.platform }}--x64 stub
-          npm test
+          npm install-ci-test
 
   test-linux-arm:
     needs: build-linux-arm
@@ -133,7 +140,9 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: stubs
-      - run: docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'npm ci && mv stub--linux--${{ matrix.architecture }} stub && npm test'
+      - run: |
+          mv stub--linux--${{ matrix.architecture }} stub
+          docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'npm install-ci-test'
 
   checksums:
     needs: [build-x64, build-darwin-arm, build-linux-arm]
@@ -178,7 +187,8 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: checksums
-      - run: npm ci && find .
-        # TODO: - run: npm ci && npm publish
+      - run: |
+          npm ci
+          npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
