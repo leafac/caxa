@@ -3,20 +3,13 @@ import os from "os";
 import path from "path";
 import fs from "fs-extra";
 import execa from "execa";
-import cryptoRandomString from "crypto-random-string";
 
 jest.setTimeout(300_000);
 
-const testsDirectory = path.join(
-  os.tmpdir(),
-  "caxa-tests",
-  cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
-);
-const appsDirectory = path.join(os.tmpdir(), "caxa");
+const caxaDirectory = path.join(os.tmpdir(), "caxa");
+const testsDirectory = path.join(caxaDirectory, "tests");
 beforeAll(async () => {
-  await fs.remove(appsDirectory);
-  await fs.remove(testsDirectory);
-  await fs.ensureDir(testsDirectory);
+  await fs.remove(caxaDirectory);
 });
 
 test("echo-command-line-parameters", async () => {
@@ -24,7 +17,6 @@ test("echo-command-line-parameters", async () => {
     testsDirectory,
     `echo-command-line-parameters${process.platform === "win32" ? ".exe" : ""}`
   );
-  const appDirectory = path.join(appsDirectory, "echo-command-line-parameters");
   await execa("ts-node", [
     "src/index.ts",
     "--directory",
@@ -37,40 +29,6 @@ test("echo-command-line-parameters", async () => {
     "--output",
     output,
   ]);
-  // Cached from build.
-  expect(
-    (
-      await execa(output, ["and", "some arguments passed on the call"], {
-        all: true,
-      })
-    ).all
-  ).toMatchInlineSnapshot(`
-    "[
-      \\"some\\",
-      \\"embedded arguments\\",
-      \\"and\\",
-      \\"some arguments passed on the call\\"
-    ]"
-  `);
-  expect(await fs.pathExists(appDirectory)).toBe(true);
-  await fs.remove(appDirectory);
-  expect(await fs.pathExists(appDirectory)).toBe(false);
-  // Uncached.
-  expect(
-    (
-      await execa(output, ["and", "some arguments passed on the call"], {
-        all: true,
-      })
-    ).all
-  ).toMatchInlineSnapshot(`
-    "[
-      \\"some\\",
-      \\"embedded arguments\\",
-      \\"and\\",
-      \\"some arguments passed on the call\\"
-    ]"
-  `);
-  // Cached from previous run.
   expect(
     (
       await execa(output, ["and", "some arguments passed on the call"], {
@@ -130,7 +88,6 @@ test("native-modules", async () => {
     testsDirectory,
     `native-modules${process.platform === "win32" ? ".exe" : ""}`
   );
-  const appDirectory = path.join(appsDirectory, "native-modules");
   await execa("npm", ["install"], { cwd: "examples/native-modules" });
   await execa("ts-node", [
     "src/index.ts",
@@ -142,24 +99,6 @@ test("native-modules", async () => {
     "--output",
     output,
   ]);
-  // Cached from build.
-  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
-    "@leafac/sqlite: {
-      \\"example\\": \\"caxa native modules\\"
-    }
-    sharp: 48"
-  `);
-  expect(await fs.pathExists(appDirectory)).toBe(true);
-  await fs.remove(appDirectory);
-  expect(await fs.pathExists(appDirectory)).toBe(false);
-  // Uncached.
-  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
-    "@leafac/sqlite: {
-      \\"example\\": \\"caxa native modules\\"
-    }
-    sharp: 48"
-  `);
-  // Cached from previous run.
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
     "@leafac/sqlite: {
       \\"example\\": \\"caxa native modules\\"
@@ -173,7 +112,6 @@ test("false", async () => {
     testsDirectory,
     `false${process.platform === "win32" ? ".exe" : ""}`
   );
-  const appDirectory = path.join(appsDirectory, "false");
   await execa("ts-node", [
     "src/index.ts",
     "--directory",
@@ -184,18 +122,6 @@ test("false", async () => {
     "--output",
     output,
   ]);
-  // Cached from build.
-  await expect(execa(output)).rejects.toThrowError(
-    "Command failed with exit code 1"
-  );
-  expect(await fs.pathExists(appDirectory)).toBe(true);
-  await fs.remove(appDirectory);
-  expect(await fs.pathExists(appDirectory)).toBe(false);
-  // Uncached.
-  await expect(execa(output)).rejects.toThrowError(
-    "Command failed with exit code 1"
-  );
-  // Cached from previous run.
   await expect(execa(output)).rejects.toThrowError(
     "Command failed with exit code 1"
   );

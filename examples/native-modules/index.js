@@ -6,7 +6,7 @@
 
   const temporaryDirectory = path.join(
     os.tmpdir(),
-    "caxa-examples/native-modules",
+    "caxa/examples/native-modules",
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
   await fs.ensureDir(temporaryDirectory);

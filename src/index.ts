@@ -28,7 +28,7 @@ export default async function caxa({
     path.basename(path.basename(output, ".app"), ".exe"),
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
-  const appDirectory = path.join(os.tmpdir(), "caxa", identifier);
+  const appDirectory = path.join(os.tmpdir(), "caxa/builds", identifier);
   await fs.copy(directory, appDirectory);
   await execa("npm", ["prune", "--production"], { cwd: appDirectory });
   await execa("npm", ["dedupe"], { cwd: appDirectory });
