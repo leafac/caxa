@@ -12,7 +12,7 @@ const crypto = require("crypto");
     stubParts.push(process.config.variables.arm_version);
   const stubName = stubParts.join("--");
   const downloadPath = `https://github.com/leafac/caxa/releases/download/v${package.version}/${stubName}`;
-  await fs.writeFile(stubPath, await download(downloadPath));
+  await fs.writeFile(stubPath, await download(downloadPath), { mode: 0o755 });
   const checksumsPath = path.join(__dirname, "checksums.txt");
   if (!fs.existsSync(checksumsPath)) process.exit(0);
   const checksums = await fs.readFile(checksumsPath, "utf8");

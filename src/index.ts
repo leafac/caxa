@@ -70,6 +70,7 @@ export default async function caxa({
     if (process.platform === "win32" && !output.endsWith(".exe"))
       throw new Error("An Windows executable must end in ‘.exe’.");
     await fs.copyFile(path.join(__dirname, "../stub"), output);
+    await fs.chmod(output, 0o755);
     const archive = archiver("tar", { gzip: true });
     const archiveStream = fs.createWriteStream(output, { flags: "a" });
     archive.pipe(archiveStream);
