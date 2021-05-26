@@ -19,15 +19,16 @@ test("echo-command-line-parameters", async () => {
   );
   await execa("ts-node", [
     "src/index.ts",
-    "--directory",
+    "--input",
     "examples/echo-command-line-parameters",
-    "--command",
+    "--output",
+    output,
+    "--",
     "{{caxa}}/node_modules/.bin/node",
     "{{caxa}}/index.js",
     "some",
     "embedded arguments",
-    "--output",
-    output,
+    "--an-option-thats-part-of-the-command",
   ]);
   expect(
     (
@@ -39,6 +40,7 @@ test("echo-command-line-parameters", async () => {
     "[
       \\"some\\",
       \\"embedded arguments\\",
+      \\"--an-option-thats-part-of-the-command\\",
       \\"and\\",
       \\"some arguments passed on the call\\"
     ]"
@@ -53,15 +55,15 @@ if (process.platform === "darwin")
     );
     await execa("ts-node", [
       "src/index.ts",
-      "--directory",
+      "--input",
       "examples/echo-command-line-parameters",
-      "--command",
+      "--output",
+      output,
+      "--",
       "{{caxa}}/node_modules/.bin/node",
       "{{caxa}}/index.js",
       "some",
       "embedded arguments",
-      "--output",
-      output,
     ]);
     console.log(
       `Test the macOS Application Bundle (.app) manually:\n$ open -a "${output}"`
@@ -91,13 +93,13 @@ test("native-modules", async () => {
   await execa("npm", ["install"], { cwd: "examples/native-modules" });
   await execa("ts-node", [
     "src/index.ts",
-    "--directory",
+    "--input",
     "examples/native-modules",
-    "--command",
-    "{{caxa}}/node_modules/.bin/node",
-    "{{caxa}}/index.js",
     "--output",
     output,
+    "--",
+    "{{caxa}}/node_modules/.bin/node",
+    "{{caxa}}/index.js",
   ]);
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
     "@leafac/sqlite: {
@@ -114,13 +116,13 @@ test("false", async () => {
   );
   await execa("ts-node", [
     "src/index.ts",
-    "--directory",
+    "--input",
     "examples/false",
-    "--command",
-    "{{caxa}}/node_modules/.bin/node",
-    "{{caxa}}/index.js",
     "--output",
     output,
+    "--",
+    "{{caxa}}/node_modules/.bin/node",
+    "{{caxa}}/index.js",
   ]);
   await expect(execa(output)).rejects.toThrowError(
     "Command failed with exit code 1"

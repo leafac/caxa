@@ -10,26 +10,23 @@ import cryptoRandomString from "crypto-random-string";
 import commander from "commander";
 
 export default async function caxa({
-  directory,
-  command,
+  input,
   output,
+  command,
 }: {
-  directory: string;
-  command: string[];
+  input: string;
   output: string;
+  command: string[];
 }): Promise<void> {
-  if (
-    !(await fs.pathExists(directory)) ||
-    !(await fs.lstat(directory)).isDirectory()
-  )
-    throw new Error(`The path to package isn’t a directory: ‘${directory}’.`);
+  if (!(await fs.pathExists(input)) || !(await fs.lstat(input)).isDirectory())
+    throw new Error(`The path to package isn’t a directory: ‘${input}’.`);
 
   const identifier = path.join(
     path.basename(path.basename(output, ".app"), ".exe"),
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
   const appDirectory = path.join(os.tmpdir(), "caxa/builds", identifier);
-  await fs.copy(directory, appDirectory);
+  await fs.copy(input, appDirectory);
   await execa("npm", ["prune", "--production"], { cwd: appDirectory });
   await execa("npm", ["dedupe"], { cwd: appDirectory });
   await fs.ensureDir(path.join(appDirectory, "node_modules/.bin"));
@@ -90,46 +87,45 @@ export default async function caxa({
 if (require.main === module)
   (async () => {
     await commander.program
-      .requiredOption(
-        "-d, --directory <directory>",
-        "The directory to package."
-      )
-      .requiredOption(
-        "-c, --command <command-and-arguments...>",
-        "The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute. The ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument."
-      )
+      .version(require("../package.json").version)
+      .requiredOption("-i, --input <input>", "The input directory to package.")
       .requiredOption(
         "-o, --output <output>",
         "The path at which to produce the executable. Overwrites existing files/folders. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS Application Bundle."
       )
-      .version(require("../package.json").version)
+      .arguments("<command...>")
+      .description("Package Node.js applications into executable binaries", {
+        command:
+          "The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute. The ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument.",
+      })
       .addHelpText(
         "after",
         `
 Examples:
 
   Windows:
-  > caxa --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "echo-command-line-parameters.exe"
+  > caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters.exe" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 
   macOS/Linux:
-  $ caxa --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "echo-command-line-parameters"
+  $ caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 
   macOS (Application Bundle):
-  $ caxa --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "Echo Command Line Parameters.app"
+  $ caxa --input "examples/echo-command-line-parameters" --output "Echo Command Line Parameters.app" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 `
       )
       .action(
-        async ({
-          directory,
-          command,
-          output,
-        }: {
-          directory: string;
-          command: string[];
-          output: string;
-        }) => {
+        async (
+          command: string[],
+          {
+            input,
+            output,
+          }: {
+            input: string;
+            output: string;
+          }
+        ) => {
           try {
-            await caxa({ directory, command, output });
+            await caxa({ input, output, command });
           } catch (error) {
             console.error(error.message);
             process.exit(1);
