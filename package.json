@@ -1,6 +1,6 @@
 {
   "name": "caxa",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0-beta.2",
   "description": "Package Node.js applications into executable binaries",
   "main": "lib/index.js",
   "bin": {
