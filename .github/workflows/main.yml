@@ -73,10 +73,7 @@ jobs:
           sudo service docker restart
           docker version -f '{{.Client.Experimental}}'
           docker version -f '{{.Server.Experimental}}'
-      - run: |
-          docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'CGO_ENABLED=0 go build -o stub--linux--${{ matrix.architecture }} src/stub.go'
-          echo >> stub--linux--${{ matrix.architecture }}
-          echo CAXACAXACAXA >> stub--linux--${{ matrix.architecture }}
+      - run: docker run --rm --platform ${{ matrix.docker-platform }} -v $PWD:/caxa -w /caxa ${{ matrix.docker-image }} sh -c 'CGO_ENABLED=0 go build -o stub--linux--${{ matrix.architecture }} src/stub.go && echo >> stub--linux--${{ matrix.architecture }} && echo CAXACAXACAXA >> stub--linux--${{ matrix.architecture }}'
       - uses: actions/upload-artifact@v2
         with:
           name: stubs
