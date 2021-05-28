@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -43,6 +44,7 @@ func main() {
 		log.Fatalf("caxa stub: Failed to parse JSON in footer: %v", err)
 	}
 
+	// 1.
 	appDirectory := path.Join(os.TempDir(), "caxa/runs", footer.Identifier)
 	appDirectoryFileInfo, err := os.Stat(appDirectory)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -52,9 +54,22 @@ func main() {
 		log.Fatalf("caxa stub: caxa path already exists and isn’t a directory: %v", err)
 	}
 	if err == nil && appDirectoryFileInfo.IsDir() {
+		// 1.2.
 		// NOOP: Directory already exists; use it as a cached version of the application and don’t extract again.
 	}
 	if err != nil && errors.Is(err, os.ErrNotExist) {
+		// 1.1
+
+		// 1.1.1
+		lockFile := path.Join(os.TempDir(), "caxa/locks", footer.Identifier)
+		if err := os.MkdirAll(filepath.Dir(lockFile), 0755); err != nil {
+			log.Fatalf("caxa stub: Failed to create the directory for the lock file: %v", err)
+		}
+		if err := ioutil.WriteFile(lockFile, []byte(""), 0644); err != nil {
+			log.Fatalf("caxa stub: Failed to create the lock file: %v", err)
+		}
+
+		// 1.1.2
 		// The use of ‘Repeat’ below is lower even further the chance that the separator will appear literally in the compiled stub.
 		archiveSeparator := []byte("\n" + strings.Repeat("CAXA", 3) + "\n")
 		archiveIndex := bytes.Index(executable, archiveSeparator)
@@ -66,6 +81,9 @@ func main() {
 		if err := Untar(bytes.NewReader(archive), appDirectory); err != nil {
 			log.Fatalf("caxa stub: Failed to uncompress archive: %v", err)
 		}
+
+		// 1.1.3
+		os.Remove(lockFile)
 	}
 
 	expandedCommand := make([]string, len(footer.Command))
