@@ -63,8 +63,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: docker/setup-qemu-action@v1
-        with:
-          platforms: all
       - name: Enable Docker Experimental Features (Required to use `docker run --platform`)
         run: |
           echo $'{\n  "experimental": true\n}' | sudo tee /etc/docker/daemon.json
@@ -124,8 +122,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: docker/setup-qemu-action@v1
-        with:
-          platforms: all
       - name: Enable Docker Experimental Features (Required to use `docker run --platform`)
         run: |
           echo $'{\n  "experimental": true\n}' | sudo tee /etc/docker/daemon.json
