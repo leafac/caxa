@@ -85,29 +85,30 @@ if (process.platform === "darwin")
     `);
   });
 
-test("native-modules", async () => {
-  const output = path.join(
-    testsDirectory,
-    `native-modules${process.platform === "win32" ? ".exe" : ""}`
-  );
-  await execa("npm", ["install"], { cwd: "examples/native-modules" });
-  await execa("ts-node", [
-    "src/index.ts",
-    "--input",
-    "examples/native-modules",
-    "--output",
-    output,
-    "--",
-    "{{caxa}}/node_modules/.bin/node",
-    "{{caxa}}/index.js",
-  ]);
-  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
+if (process.platform !== "linux" || process.arch === "x64")
+  test("native-modules", async () => {
+    const output = path.join(
+      testsDirectory,
+      `native-modules${process.platform === "win32" ? ".exe" : ""}`
+    );
+    await execa("npm", ["install"], { cwd: "examples/native-modules" });
+    await execa("ts-node", [
+      "src/index.ts",
+      "--input",
+      "examples/native-modules",
+      "--output",
+      output,
+      "--",
+      "{{caxa}}/node_modules/.bin/node",
+      "{{caxa}}/index.js",
+    ]);
+    expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
     "@leafac/sqlite: {
       \\"example\\": \\"caxa native modules\\"
     }
     sharp: 48"
   `);
-});
+  });
 
 test("false", async () => {
   const output = path.join(
