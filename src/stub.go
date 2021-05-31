@@ -44,7 +44,7 @@ func main() {
 	}
 
 	// 1.
-	appDirectory := path.Join(os.TempDir(), "caxa/runs", footer.Identifier)
+	appDirectory := path.Join(os.TempDir(), "caxa/apps", footer.Identifier)
 	appDirectoryFileInfo, err := os.Stat(appDirectory)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		log.Fatalf("caxa stub: Failed to find information about caxa directory: %v", err)
