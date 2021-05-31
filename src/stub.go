@@ -14,6 +14,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -43,43 +44,54 @@ func main() {
 		log.Fatalf("caxa stub: Failed to parse JSON in footer: %v", err)
 	}
 
-	// 1.
-	applicationDirectory := path.Join(os.TempDir(), "caxa/applications", footer.Identifier)
-	applicationDirectoryFileInfo, err := os.Stat(applicationDirectory)
-	if err != nil && !errors.Is(err, os.ErrNotExist) {
-		log.Fatalf("caxa stub: Failed to find information about caxa directory: %v", err)
-	}
-	if err == nil && !applicationDirectoryFileInfo.IsDir() {
-		log.Fatalf("caxa stub: caxa path already exists and isn’t a directory: %v", err)
-	}
-	if err == nil && applicationDirectoryFileInfo.IsDir() {
-		// 1.2.
-		// NOOP: Directory already exists; use it as a cached version of the application and don’t extract again.
-	}
-	if err != nil && errors.Is(err, os.ErrNotExist) {
-		// 1.1
-
-		// 1.1.1
-		lock := path.Join(os.TempDir(), "caxa/locks", footer.Identifier)
-		if err := os.MkdirAll(lock, 0755); err != nil {
-			log.Fatalf("caxa stub: Failed to create the lock directory: %v", err)
+	var applicationDirectory string
+	for extractionAttempt := 0; true; extractionAttempt++ {
+		lock := path.Join(os.TempDir(), "caxa/locks", footer.Identifier, strconv.Itoa(extractionAttempt))
+		applicationDirectory = path.Join(os.TempDir(), "caxa/applications", footer.Identifier, strconv.Itoa(extractionAttempt))
+		applicationDirectoryFileInfo, err := os.Stat(applicationDirectory)
+		if err != nil && !errors.Is(err, os.ErrNotExist) {
+			log.Fatalf("caxa stub: Failed to find information about the application directory: %v", err)
 		}
-
-		// 1.1.2
-		// The use of ‘Repeat’ below is lower even further the chance that the separator will appear literally in the compiled stub.
-		archiveSeparator := []byte("\n" + strings.Repeat("CAXA", 3) + "\n")
-		archiveIndex := bytes.Index(executable, archiveSeparator)
-		if archiveIndex == -1 {
-			log.Fatalf("caxa stub: Failed to find archive (did you append the separator when building the stub?): %v", err)
+		if err == nil && !applicationDirectoryFileInfo.IsDir() {
+			log.Fatalf("caxa stub: Path to application directory already exists and isn’t a directory: %v", err)
 		}
-		archive := executable[archiveIndex+len(archiveSeparator) : footerIndex]
-
-		if err := Untar(bytes.NewReader(archive), applicationDirectory); err != nil {
-			log.Fatalf("caxa stub: Failed to uncompress archive: %v", err)
+		if err == nil && applicationDirectoryFileInfo.IsDir() {
+			lockFileInfo, err := os.Stat(lock)
+			if err != nil && !errors.Is(err, os.ErrNotExist) {
+				log.Fatalf("caxa stub: Failed to find information about the lock: %v", err)
+			}
+			if err == nil && !lockFileInfo.IsDir() {
+				log.Fatalf("caxa stub: Path to lock already exists and isn’t a directory: %v", err)
+			}
+			if err == nil && lockFileInfo.IsDir() {
+				// Application directory exists and lock exists as well, so a previous extraction wasn’t successful or an extraction is happening right now and hasn’t finished yet, in either case, start over with a fresh name.
+				continue
+			}
+			if err != nil && errors.Is(err, os.ErrNotExist) {
+				// Application directory exists and lock doesn’t exist, so a previous extraction was successful. Use the cached version of the application directory and don’t extract again.
+				break
+			}
 		}
+		if err != nil && errors.Is(err, os.ErrNotExist) {
+			if err := os.MkdirAll(lock, 0755); err != nil {
+				log.Fatalf("caxa stub: Failed to create the lock directory: %v", err)
+			}
 
-		// 1.1.3
-		os.Remove(lock)
+			// The use of ‘Repeat’ below is to make it even more improbable that the separator will appear literally in the compiled stub.
+			archiveSeparator := []byte("\n" + strings.Repeat("CAXA", 3) + "\n")
+			archiveIndex := bytes.Index(executable, archiveSeparator)
+			if archiveIndex == -1 {
+				log.Fatalf("caxa stub: Failed to find archive (did you append the separator when building the stub?): %v", err)
+			}
+			archive := executable[archiveIndex+len(archiveSeparator) : footerIndex]
+
+			if err := Untar(bytes.NewReader(archive), applicationDirectory); err != nil {
+				log.Fatalf("caxa stub: Failed to uncompress archive: %v", err)
+			}
+
+			os.Remove(lock)
+			break
+		}
 	}
 
 	expandedCommand := make([]string, len(footer.Command))
