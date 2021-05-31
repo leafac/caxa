@@ -18,6 +18,7 @@ export default async function caxa({
   dedupe = true,
   prepare = async () => {},
   includeNode = true,
+  removeBuildDirectory = true,
   identifier = path.join(
     path.basename(path.basename(output, ".app"), ".exe"),
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
@@ -31,6 +32,7 @@ export default async function caxa({
   dedupe?: boolean;
   prepare?: (buildDirectory: string) => Promise<void>;
   includeNode?: boolean;
+  removeBuildDirectory?: boolean;
   identifier?: string;
 }): Promise<void> {
   if (!(await fs.pathExists(input)) || !(await fs.lstat(input)).isDirectory())
@@ -111,6 +113,8 @@ export default async function caxa({
     });
     await fs.appendFile(output, "\n" + JSON.stringify({ identifier, command }));
   }
+
+  if (removeBuildDirectory) await fs.remove(buildDirectory);
 }
 
 if (require.main === module)
