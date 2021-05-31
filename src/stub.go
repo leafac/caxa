@@ -44,15 +44,15 @@ func main() {
 	}
 
 	// 1.
-	appDirectory := path.Join(os.TempDir(), "caxa/apps", footer.Identifier)
-	appDirectoryFileInfo, err := os.Stat(appDirectory)
+	applicationDirectory := path.Join(os.TempDir(), "caxa/applications", footer.Identifier)
+	applicationDirectoryFileInfo, err := os.Stat(applicationDirectory)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		log.Fatalf("caxa stub: Failed to find information about caxa directory: %v", err)
 	}
-	if err == nil && !appDirectoryFileInfo.IsDir() {
+	if err == nil && !applicationDirectoryFileInfo.IsDir() {
 		log.Fatalf("caxa stub: caxa path already exists and isn’t a directory: %v", err)
 	}
-	if err == nil && appDirectoryFileInfo.IsDir() {
+	if err == nil && applicationDirectoryFileInfo.IsDir() {
 		// 1.2.
 		// NOOP: Directory already exists; use it as a cached version of the application and don’t extract again.
 	}
@@ -74,7 +74,7 @@ func main() {
 		}
 		archive := executable[archiveIndex+len(archiveSeparator) : footerIndex]
 
-		if err := Untar(bytes.NewReader(archive), appDirectory); err != nil {
+		if err := Untar(bytes.NewReader(archive), applicationDirectory); err != nil {
 			log.Fatalf("caxa stub: Failed to uncompress archive: %v", err)
 		}
 
@@ -83,9 +83,9 @@ func main() {
 	}
 
 	expandedCommand := make([]string, len(footer.Command))
-	appDirectoryPlaceholderRegexp := regexp.MustCompile(`\{\{\s*caxa\s*\}\}`)
+	applicationDirectoryPlaceholderRegexp := regexp.MustCompile(`\{\{\s*caxa\s*\}\}`)
 	for key, commandPart := range footer.Command {
-		expandedCommand[key] = appDirectoryPlaceholderRegexp.ReplaceAllLiteralString(commandPart, appDirectory)
+		expandedCommand[key] = applicationDirectoryPlaceholderRegexp.ReplaceAllLiteralString(commandPart, applicationDirectory)
 	}
 
 	command := exec.Command(expandedCommand[0], append(expandedCommand[1:], os.Args[1:]...)...)

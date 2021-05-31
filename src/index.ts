@@ -25,15 +25,19 @@ export default async function caxa({
     path.basename(path.basename(output, ".app"), ".exe"),
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
-  const appDirectory = path.join(os.tmpdir(), "caxa/builds", identifier);
-  await fs.copy(input, appDirectory);
-  await execa("npm", ["prune", "--production"], { cwd: appDirectory });
-  await execa("npm", ["dedupe"], { cwd: appDirectory });
-  await fs.ensureDir(path.join(appDirectory, "node_modules/.bin"));
+  const applicationDirectory = path.join(
+    os.tmpdir(),
+    "caxa/builds",
+    identifier
+  );
+  await fs.copy(input, applicationDirectory);
+  await execa("npm", ["prune", "--production"], { cwd: applicationDirectory });
+  await execa("npm", ["dedupe"], { cwd: applicationDirectory });
+  await fs.ensureDir(path.join(applicationDirectory, "node_modules/.bin"));
   await fs.copyFile(
     process.execPath,
     path.join(
-      appDirectory,
+      applicationDirectory,
       "node_modules/.bin",
       path.basename(process.execPath)
     )
@@ -48,7 +52,10 @@ export default async function caxa({
       );
     await fs.remove(output);
     await fs.ensureDir(path.join(output, "Contents/Resources"));
-    await fs.move(appDirectory, path.join(output, "Contents/Resources/app"));
+    await fs.move(
+      applicationDirectory,
+      path.join(output, "Contents/Resources/application")
+    );
     await fs.ensureDir(path.join(output, "Contents/MacOS"));
     const name = path.basename(output, ".app");
     await fs.writeFile(
@@ -61,7 +68,10 @@ export default async function caxa({
       `#!/usr/bin/env sh\n${command
         .map(
           (part) =>
-            `"${part.replace(/\{\{\s*caxa\s*\}\}/g, `$(dirname "$0")/app`)}"`
+            `"${part.replace(
+              /\{\{\s*caxa\s*\}\}/g,
+              `$(dirname "$0")/application`
+            )}"`
         )
         .join(" ")}`,
       { mode: 0o755 }
@@ -74,7 +84,7 @@ export default async function caxa({
     const archive = archiver("tar", { gzip: true });
     const archiveStream = fs.createWriteStream(output, { flags: "a" });
     archive.pipe(archiveStream);
-    archive.directory(appDirectory, false);
+    archive.directory(applicationDirectory, false);
     await archive.finalize();
     // FIXME: Use ‘stream/promises’ when Node.js 16 lands, because then an LTS version will have the feature: await stream.finished(archiveStream);
     await new Promise((resolve, reject) => {
