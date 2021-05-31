@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -61,12 +60,9 @@ func main() {
 		// 1.1
 
 		// 1.1.1
-		lockFile := path.Join(os.TempDir(), "caxa/locks", footer.Identifier)
-		if err := os.MkdirAll(filepath.Dir(lockFile), 0755); err != nil {
-			log.Fatalf("caxa stub: Failed to create the directory for the lock file: %v", err)
-		}
-		if err := ioutil.WriteFile(lockFile, []byte(""), 0644); err != nil {
-			log.Fatalf("caxa stub: Failed to create the lock file: %v", err)
+		lock := path.Join(os.TempDir(), "caxa/locks", footer.Identifier)
+		if err := os.MkdirAll(lock, 0755); err != nil {
+			log.Fatalf("caxa stub: Failed to create the lock directory: %v", err)
 		}
 
 		// 1.1.2
@@ -83,7 +79,7 @@ func main() {
 		}
 
 		// 1.1.3
-		os.Remove(lockFile)
+		os.Remove(lock)
 	}
 
 	expandedCommand := make([]string, len(footer.Command))
