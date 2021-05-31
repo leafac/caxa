@@ -13,35 +13,55 @@ export default async function caxa({
   input,
   output,
   command,
+  overwrite = true,
+  filter = () => true,
+  dedupe = true,
+  prepare = async () => {},
+  includeNode = true,
+  identifier = path.join(
+    path.basename(path.basename(output, ".app"), ".exe"),
+    cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
+  ),
 }: {
   input: string;
   output: string;
   command: string[];
+  overwrite?: boolean;
+  filter?: fs.CopyFilterSync | fs.CopyFilterAsync;
+  dedupe?: boolean;
+  prepare?: (buildDirectory: string) => Promise<void>;
+  includeNode?: boolean;
+  identifier?: string;
 }): Promise<void> {
   if (!(await fs.pathExists(input)) || !(await fs.lstat(input)).isDirectory())
-    throw new Error(`The path to your application isn’t a directory: ‘${input}’.`);
+    throw new Error(
+      `The path to your application isn’t a directory: ‘${input}’.`
+    );
+  if ((await fs.pathExists(output)) && !overwrite)
+    throw new Error(`Output already exists: ‘${output}’.`);
+  if (process.platform === "win32" && !output.endsWith(".exe"))
+    throw new Error("An Windows executable must end in ‘.exe’.");
 
-  const identifier = path.join(
-    path.basename(path.basename(output, ".app"), ".exe"),
-    cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
-  );
   const buildDirectory = path.join(
     os.tmpdir(),
     "caxa/builds",
-    identifier
+    cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
-  await fs.copy(input, buildDirectory);
-  await execa("npm", ["prune", "--production"], { cwd: buildDirectory });
-  await execa("npm", ["dedupe"], { cwd: buildDirectory });
-  await fs.ensureDir(path.join(buildDirectory, "node_modules/.bin"));
-  await fs.copyFile(
-    process.execPath,
-    path.join(
-      buildDirectory,
-      "node_modules/.bin",
-      path.basename(process.execPath)
-    )
-  );
+  await fs.copy(input, buildDirectory, { filter });
+  if (dedupe)
+    await execa("npm", ["dedupe", "--production"], { cwd: buildDirectory });
+  await prepare(buildDirectory);
+  if (includeNode) {
+    await fs.ensureDir(path.join(buildDirectory, "node_modules/.bin"));
+    await fs.copyFile(
+      process.execPath,
+      path.join(
+        buildDirectory,
+        "node_modules/.bin",
+        path.basename(process.execPath)
+      )
+    );
+  }
 
   await fs.ensureDir(path.dirname(output));
 
@@ -77,8 +97,6 @@ export default async function caxa({
       { mode: 0o755 }
     );
   } else {
-    if (process.platform === "win32" && !output.endsWith(".exe"))
-      throw new Error("An Windows executable must end in ‘.exe’.");
     await fs.copyFile(path.join(__dirname, "../stub"), output);
     await fs.chmod(output, 0o755);
     const archive = archiver("tar", { gzip: true });
