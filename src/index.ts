@@ -19,25 +19,25 @@ export default async function caxa({
   command: string[];
 }): Promise<void> {
   if (!(await fs.pathExists(input)) || !(await fs.lstat(input)).isDirectory())
-    throw new Error(`The path to package isn’t a directory: ‘${input}’.`);
+    throw new Error(`The path to your application isn’t a directory: ‘${input}’.`);
 
   const identifier = path.join(
     path.basename(path.basename(output, ".app"), ".exe"),
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
-  const applicationDirectory = path.join(
+  const buildDirectory = path.join(
     os.tmpdir(),
     "caxa/builds",
     identifier
   );
-  await fs.copy(input, applicationDirectory);
-  await execa("npm", ["prune", "--production"], { cwd: applicationDirectory });
-  await execa("npm", ["dedupe"], { cwd: applicationDirectory });
-  await fs.ensureDir(path.join(applicationDirectory, "node_modules/.bin"));
+  await fs.copy(input, buildDirectory);
+  await execa("npm", ["prune", "--production"], { cwd: buildDirectory });
+  await execa("npm", ["dedupe"], { cwd: buildDirectory });
+  await fs.ensureDir(path.join(buildDirectory, "node_modules/.bin"));
   await fs.copyFile(
     process.execPath,
     path.join(
-      applicationDirectory,
+      buildDirectory,
       "node_modules/.bin",
       path.basename(process.execPath)
     )
@@ -53,7 +53,7 @@ export default async function caxa({
     await fs.remove(output);
     await fs.ensureDir(path.join(output, "Contents/Resources"));
     await fs.move(
-      applicationDirectory,
+      buildDirectory,
       path.join(output, "Contents/Resources/application")
     );
     await fs.ensureDir(path.join(output, "Contents/MacOS"));
@@ -84,7 +84,7 @@ export default async function caxa({
     const archive = archiver("tar", { gzip: true });
     const archiveStream = fs.createWriteStream(output, { flags: "a" });
     archive.pipe(archiveStream);
-    archive.directory(applicationDirectory, false);
+    archive.directory(buildDirectory, false);
     await archive.finalize();
     // FIXME: Use ‘stream/promises’ when Node.js 16 lands, because then an LTS version will have the feature: await stream.finished(archiveStream);
     await new Promise((resolve, reject) => {
