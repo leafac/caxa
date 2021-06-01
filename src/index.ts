@@ -131,8 +131,8 @@ if (require.main === module)
     await commander.program
       .version(require("../package.json").version)
       /*
-        dedupe?: boolean;
-        prepare?: (buildDirectory: string) => Promise<void>;
+        dedupe?: boolean; TODO: WRITE TESTS FOR THIS
+        prepare?: (buildDirectory: string) => Promise<void>; TODO: WRITE TESTS FOR THIS
         includeNode?: boolean;
         removeBuildDirectory?: boolean;
         identifier?: string;
@@ -154,6 +154,10 @@ if (require.main === module)
         true
       )
       .option("-D, --no-dedupe")
+      .option(
+        "-p, --prepare <command>",
+        "Command to run on the build directory while packaging."
+      )
       .arguments("<command...>")
       .description("Package Node.js applications into executable binaries", {
         command:
@@ -183,12 +187,14 @@ Examples:
             force,
             exclude = [],
             dedupe,
+            prepare,
           }: {
             input: string;
             output: string;
             force?: boolean;
             exclude?: string[];
             dedupe?: boolean;
+            prepare?: string;
           }
         ) => {
           try {
@@ -199,6 +205,12 @@ Examples:
               force,
               exclude,
               dedupe,
+              prepare:
+                prepare === undefined
+                  ? undefined
+                  : async (buildDirectory: string) => {
+                      await execa.command(prepare, { cwd: buildDirectory });
+                    },
             });
           } catch (error) {
             console.error(error.message);
