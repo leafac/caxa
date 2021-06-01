@@ -131,8 +131,9 @@ if (require.main === module)
     await commander.program
       .version(require("../package.json").version)
       /*
-        dedupe?: boolean; TODO: WRITE TESTS FOR THIS
-        prepare?: (buildDirectory: string) => Promise<void>; TODO: WRITE TESTS FOR THIS
+        TODO: WRITE TESTS FOR:
+        dedupe?: boolean; 
+        prepare?: (buildDirectory: string) => Promise<void>;
         includeNode?: boolean;
         removeBuildDirectory?: boolean;
         identifier?: string;
@@ -142,36 +143,40 @@ if (require.main === module)
         "-o, --output <output>",
         "The path where the executable will be produced. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS Application Bundle."
       )
-      .option("-f, --force", "Overwrite output if it exists.", true)
+      .option("-f, --force", "[Advanced] Overwrite output if it exists.", true)
       .option("-F, --no-force")
       .option(
         "-e, --exclude <path...>",
-        "Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match will be excluded."
+        "[Advanced] Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match will be excluded."
       )
       .option(
         "-d, --dedupe",
-        "Run ‘npm dedupe --production’ on the build directory.",
+        "[Advanced] Run ‘npm dedupe --production’ on the build directory.",
         true
       )
       .option("-D, --no-dedupe")
       .option(
         "-p, --prepare <command>",
-        "Command to run on the build directory while packaging."
+        "[Advanced] Command to run on the build directory while packaging."
       )
       .option(
         "-n, --include-node",
-        "Copy the Node.js executable to ‘{{caxa}}/node_modules/.bin/node’.",
+        "[Advanced] Copy the Node.js executable to ‘{{caxa}}/node_modules/.bin/node’.",
         true
       )
       .option("-N, --no-include-node")
       .option(
         "-b, --remove-build-directory",
-        "Remove the build directory after the build.",
+        "[Advanced] Remove the build directory after the build.",
         true
       )
       .option("-B, --no-remove-build-directory")
+      .option(
+        "--identifier <identifier>",
+        "[Advanced] Build identifier, which is the path in which the application will be unpacked."
+      )
       .arguments("<command...>")
-      .description("Package Node.js applications into executable binaries", {
+      .description("Package Node.js applications into executable binaries.", {
         command:
           "The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute. The ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument.",
       })
@@ -202,6 +207,7 @@ Examples:
             prepare,
             includeNode,
             removeBuildDirectory,
+            identifier,
           }: {
             input: string;
             output: string;
@@ -211,6 +217,7 @@ Examples:
             prepare?: string;
             includeNode?: boolean;
             removeBuildDirectory?: boolean;
+            identifier?: string;
           }
         ) => {
           try {
@@ -228,7 +235,8 @@ Examples:
                       await execa.command(prepare!, { cwd: buildDirectory });
                     },
               includeNode,
-              removeBuildDirectory
+              removeBuildDirectory,
+              identifier,
             });
           } catch (error) {
             console.error(error.message);
