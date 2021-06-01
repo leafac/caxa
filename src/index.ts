@@ -15,7 +15,14 @@ export default async function caxa({
   output,
   command,
   force = true,
-  filter = () => true,
+  exclude = [],
+  filter = (() => {
+    const pathsToExclude = globby.sync(exclude, {
+      expandDirectories: false,
+      onlyFiles: false,
+    });
+    return (path: string) => !pathsToExclude.includes(path);
+  })(),
   dedupe = true,
   prepare = async () => {},
   includeNode = true,
@@ -29,6 +36,7 @@ export default async function caxa({
   output: string;
   command: string[];
   force?: boolean;
+  exclude?: string[];
   filter?: fs.CopyFilterSync | fs.CopyFilterAsync;
   dedupe?: boolean;
   prepare?: (buildDirectory: string) => Promise<void>;
@@ -176,16 +184,12 @@ Examples:
           }
         ) => {
           try {
-            const pathsToExclude = await globby(exclude, {
-              expandDirectories: false,
-              onlyFiles: false,
-            });
             await caxa({
               input,
               output,
               command,
               force,
-              filter: (path) => !pathsToExclude.includes(path),
+              exclude,
             });
           } catch (error) {
             console.error(error.message);
