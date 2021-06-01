@@ -143,11 +143,17 @@ if (require.main === module)
         "The path where the executable will be produced. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS Application Bundle."
       )
       .option("-f, --force", "Overwrite output if it exists.", true)
-      .option("--no-force")
+      .option("-F, --no-force")
       .option(
         "-e, --exclude <path...>",
         "Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match will be excluded."
       )
+      .option(
+        "-d, --dedupe",
+        "Run ‘npm dedupe --production’ on the build directory.",
+        true
+      )
+      .option("-D, --no-dedupe")
       .arguments("<command...>")
       .description("Package Node.js applications into executable binaries", {
         command:
@@ -176,11 +182,13 @@ Examples:
             output,
             force,
             exclude = [],
+            dedupe,
           }: {
             input: string;
             output: string;
             force?: boolean;
             exclude?: string[];
+            dedupe?: boolean;
           }
         ) => {
           try {
@@ -190,6 +198,7 @@ Examples:
               command,
               force,
               exclude,
+              dedupe,
             });
           } catch (error) {
             console.error(error.message);
