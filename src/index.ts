@@ -164,6 +164,12 @@ if (require.main === module)
         true
       )
       .option("-N, --no-include-node")
+      .option(
+        "-b, --remove-build-directory",
+        "Remove the build directory after the build.",
+        true
+      )
+      .option("-B, --no-remove-build-directory")
       .arguments("<command...>")
       .description("Package Node.js applications into executable binaries", {
         command:
@@ -195,6 +201,7 @@ Examples:
             dedupe,
             prepare,
             includeNode,
+            removeBuildDirectory,
           }: {
             input: string;
             output: string;
@@ -203,6 +210,7 @@ Examples:
             dedupe?: boolean;
             prepare?: string;
             includeNode?: boolean;
+            removeBuildDirectory?: boolean;
           }
         ) => {
           try {
@@ -220,6 +228,7 @@ Examples:
                       await execa.command(prepare!, { cwd: buildDirectory });
                     },
               includeNode,
+              removeBuildDirectory
             });
           } catch (error) {
             console.error(error.message);
