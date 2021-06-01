@@ -158,6 +158,12 @@ if (require.main === module)
         "-p, --prepare <command>",
         "Command to run on the build directory while packaging."
       )
+      .option(
+        "-n, --include-node",
+        "Copy the Node.js executable to ‘{{caxa}}/node_modules/.bin/node’.",
+        true
+      )
+      .option("-N, --no-include-node")
       .arguments("<command...>")
       .description("Package Node.js applications into executable binaries", {
         command:
@@ -188,6 +194,7 @@ Examples:
             exclude = [],
             dedupe,
             prepare,
+            includeNode,
           }: {
             input: string;
             output: string;
@@ -195,6 +202,7 @@ Examples:
             exclude?: string[];
             dedupe?: boolean;
             prepare?: string;
+            includeNode?: boolean;
           }
         ) => {
           try {
@@ -209,8 +217,9 @@ Examples:
                 prepare === undefined
                   ? undefined
                   : async (buildDirectory: string) => {
-                      await execa.command(prepare, { cwd: buildDirectory });
+                      await execa.command(prepare!, { cwd: buildDirectory });
                     },
+              includeNode,
             });
           } catch (error) {
             console.error(error.message);

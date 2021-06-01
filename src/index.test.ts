@@ -181,7 +181,7 @@ test("--force", async () => {
   ).rejects.toThrowError();
 });
 
-test.only("--exclude", async () => {
+test("--exclude", async () => {
   const output = path.join(
     testsDirectory,
     `echo-command-line-parameters--exclude${
