@@ -13,7 +13,7 @@ export default async function caxa({
   input,
   output,
   command,
-  overwrite = true,
+  force = true,
   filter = () => true,
   dedupe = true,
   prepare = async () => {},
@@ -27,7 +27,7 @@ export default async function caxa({
   input: string;
   output: string;
   command: string[];
-  overwrite?: boolean;
+  force?: boolean;
   filter?: fs.CopyFilterSync | fs.CopyFilterAsync;
   dedupe?: boolean;
   prepare?: (buildDirectory: string) => Promise<void>;
@@ -39,7 +39,7 @@ export default async function caxa({
     throw new Error(
       `The path to your application isn’t a directory: ‘${input}’.`
     );
-  if ((await fs.pathExists(output)) && !overwrite)
+  if ((await fs.pathExists(output)) && !force)
     throw new Error(`Output already exists: ‘${output}’.`);
   if (process.platform === "win32" && !output.endsWith(".exe"))
     throw new Error("An Windows executable must end in ‘.exe’.");
@@ -121,11 +121,21 @@ if (require.main === module)
   (async () => {
     await commander.program
       .version(require("../package.json").version)
+      /*
+        filter?: fs.CopyFilterSync | fs.CopyFilterAsync;
+        dedupe?: boolean;
+        prepare?: (buildDirectory: string) => Promise<void>;
+        includeNode?: boolean;
+        removeBuildDirectory?: boolean;
+        identifier?: string;
+      */
       .requiredOption("-i, --input <input>", "The input directory to package.")
       .requiredOption(
         "-o, --output <output>",
-        "The path at which to produce the executable. Overwrites existing files/folders. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS Application Bundle."
+        "The path where the executable will be produced. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS Application Bundle."
       )
+      .option("-f, --force", "Overwrite output if it exists.", true)
+      .option("--no-force")
       .arguments("<command...>")
       .description("Package Node.js applications into executable binaries", {
         command:
@@ -152,13 +162,15 @@ Examples:
           {
             input,
             output,
+            force,
           }: {
             input: string;
             output: string;
+            force?: boolean;
           }
         ) => {
           try {
-            await caxa({ input, output, command });
+            await caxa({ input, output, command, force });
           } catch (error) {
             console.error(error.message);
             process.exit(1);
