@@ -8,6 +8,7 @@ import execa from "execa";
 import archiver from "archiver";
 import cryptoRandomString from "crypto-random-string";
 import commander from "commander";
+import globby from "globby";
 
 export default async function caxa({
   input,
@@ -122,7 +123,6 @@ if (require.main === module)
     await commander.program
       .version(require("../package.json").version)
       /*
-        filter?: fs.CopyFilterSync | fs.CopyFilterAsync;
         dedupe?: boolean;
         prepare?: (buildDirectory: string) => Promise<void>;
         includeNode?: boolean;
@@ -136,6 +136,10 @@ if (require.main === module)
       )
       .option("-f, --force", "Overwrite output if it exists.", true)
       .option("--no-force")
+      .option(
+        "-e, --exclude <path...>",
+        "Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match will be excluded."
+      )
       .arguments("<command...>")
       .description("Package Node.js applications into executable binaries", {
         command:
@@ -163,14 +167,26 @@ Examples:
             input,
             output,
             force,
+            exclude = [],
           }: {
             input: string;
             output: string;
             force?: boolean;
+            exclude?: string[];
           }
         ) => {
           try {
-            await caxa({ input, output, command, force });
+            const pathsToExclude = await globby(exclude, {
+              expandDirectories: false,
+              onlyFiles: false,
+            });
+            await caxa({
+              input,
+              output,
+              command,
+              force,
+              filter: (path) => !pathsToExclude.includes(path),
+            });
           } catch (error) {
             console.error(error.message);
             process.exit(1);
