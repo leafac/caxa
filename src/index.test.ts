@@ -103,11 +103,11 @@ if (process.platform !== "linux" || process.arch === "x64")
       "{{caxa}}/index.js",
     ]);
     expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
-    "@leafac/sqlite: {
-      \\"example\\": \\"caxa native modules\\"
-    }
-    sharp: 48"
-  `);
+          "@leafac/sqlite: {
+            \\"example\\": \\"caxa native modules\\"
+          }
+          sharp: 48"
+      `);
   });
 
 test("false", async () => {
@@ -127,5 +127,81 @@ test("false", async () => {
   ]);
   await expect(execa(output)).rejects.toThrowError(
     "Command failed with exit code 1"
+  );
+});
+
+test("--force", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters--force${
+      process.platform === "win32" ? ".exe" : ""
+    }`
+  );
+  await execa("ts-node", [
+    "src/index.ts",
+    "--input",
+    "examples/echo-command-line-parameters",
+    "--output",
+    output,
+    "--",
+    "{{caxa}}/node_modules/.bin/node",
+    "{{caxa}}/index.js",
+    "some",
+    "embedded arguments",
+    "--an-option-thats-part-of-the-command",
+  ]);
+  await execa("ts-node", [
+    "src/index.ts",
+    "--input",
+    "examples/echo-command-line-parameters",
+    "--output",
+    output,
+    "--",
+    "{{caxa}}/node_modules/.bin/node",
+    "{{caxa}}/index.js",
+    "some",
+    "embedded arguments",
+    "--an-option-thats-part-of-the-command",
+  ]);
+  await expect(
+    execa("ts-node", [
+      "src/index.ts",
+      "--input",
+      "examples/echo-command-line-parameters",
+      "--output",
+      output,
+      "--no-force",
+      "--",
+      "{{caxa}}/node_modules/.bin/node",
+      "{{caxa}}/index.js",
+      "some",
+      "embedded arguments",
+      "--an-option-thats-part-of-the-command",
+    ])
+  ).rejects.toThrowError();
+});
+
+test.only("--exclude", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters--exclude${
+      process.platform === "win32" ? ".exe" : ""
+    }`
+  );
+  await execa("ts-node", [
+    "src/index.ts",
+    "--input",
+    "examples/echo-command-line-parameters",
+    "--output",
+    output,
+    "--exclude",
+    "examples/echo-command-line-parameters/index.js",
+    "--",
+    "{{caxa}}/node_modules/.bin/node",
+    "--print",
+    `JSON.stringify(require("fs").readdirSync("{{caxa}}"))`,
+  ]);
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    `"[\\"node_modules\\",\\"package-lock.json\\",\\"package.json\\"]"`
   );
 });
