@@ -205,3 +205,12 @@ test("--exclude", async () => {
     `"[\\"node_modules\\",\\"package-lock.json\\",\\"package.json\\"]"`
   );
 });
+
+/*
+        TODO: WRITE TESTS FOR:
+        dedupe?: boolean; 
+        prepare?: (buildDirectory: string) => Promise<void>;
+        includeNode?: boolean;
+        removeBuildDirectory?: boolean;
+        identifier?: string;
+      */

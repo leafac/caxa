@@ -63,25 +63,23 @@ export default async function caxa({
     await execa("npm", ["dedupe", "--production"], { cwd: buildDirectory });
   await prepare(buildDirectory);
   if (includeNode) {
-    await fs.ensureDir(path.join(buildDirectory, "node_modules/.bin"));
-    await fs.copyFile(
-      process.execPath,
-      path.join(
-        buildDirectory,
-        "node_modules/.bin",
-        path.basename(process.execPath)
-      )
+    const node = path.join(
+      buildDirectory,
+      "node_modules/.bin",
+      path.basename(process.execPath)
     );
+    await fs.ensureDir(path.dirname(node));
+    await fs.copyFile(process.execPath, node);
   }
 
   await fs.ensureDir(path.dirname(output));
+  await fs.remove(output);
 
   if (output.endsWith(".app")) {
     if (process.platform !== "darwin")
       throw new Error(
         "macOS Application Bundles (.app) are supported in macOS only."
       );
-    await fs.remove(output);
     await fs.ensureDir(path.join(output, "Contents/Resources"));
     await fs.move(
       buildDirectory,
@@ -130,14 +128,6 @@ if (require.main === module)
   (async () => {
     await commander.program
       .version(require("../package.json").version)
-      /*
-        TODO: WRITE TESTS FOR:
-        dedupe?: boolean; 
-        prepare?: (buildDirectory: string) => Promise<void>;
-        includeNode?: boolean;
-        removeBuildDirectory?: boolean;
-        identifier?: string;
-      */
       .requiredOption("-i, --input <input>", "The input directory to package.")
       .requiredOption(
         "-o, --output <output>",
