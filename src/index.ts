@@ -27,7 +27,7 @@ export default async function caxa({
   prepareCommand,
   prepare = async (buildDirectory: string) => {
     if (prepareCommand === undefined) return;
-    await execa.command(prepareCommand, { cwd: buildDirectory });
+    await execa.command(prepareCommand, { cwd: buildDirectory, shell: true });
   },
   includeNode = true,
   removeBuildDirectory = true,

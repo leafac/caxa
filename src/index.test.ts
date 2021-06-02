@@ -228,7 +228,7 @@ test("--dedupe", async () => {
   );
 });
 
-test.skip("--prepare-command", async () => {
+test("--prepare-command", async () => {
   const output = path.join(
     testsDirectory,
     `echo-command-line-parameters--prepare-command${
@@ -255,8 +255,6 @@ test.skip("--prepare-command", async () => {
 
 /*
   TODO:
-  - dedupe
-  - prepareCommand
   - includeNode
   - removeBuildDirectory
   - identifier
