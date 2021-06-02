@@ -39,6 +39,7 @@ export default async function caxa({
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   ),
   removeBuildDirectory = true,
+  initialMessage
 }: {
   input: string;
   output: string;
@@ -53,6 +54,7 @@ export default async function caxa({
   stub?: string;
   identifier?: string;
   removeBuildDirectory?: boolean;
+  initialMessage?: string;
 }): Promise<void> {
   if (!(await fs.pathExists(input)) || !(await fs.lstat(input)).isDirectory())
     throw new Error(
@@ -132,7 +134,9 @@ export default async function caxa({
       archiveStream.on("finish", resolve);
       archiveStream.on("error", reject);
     });
-    await fs.appendFile(output, "\n" + JSON.stringify({ identifier, command }));
+
+    const footer = { identifier, command, initialMessage }
+    await fs.appendFile(output, "\n" + JSON.stringify(footer));
   }
 
   if (removeBuildDirectory) await fs.remove(buildDirectory);
@@ -180,6 +184,10 @@ if (require.main === module)
         true
       )
       .option("-B, --no-remove-build-directory")
+      .option(
+        "-m, --initial-message <message>",
+        "Allows an optional message to be displayed on initial run as this can take some time."
+      )
       .arguments("<command...>")
       .description("Package Node.js applications into executable binaries.", {
         command:
@@ -214,6 +222,7 @@ Examples:
             stub,
             identifier,
             removeBuildDirectory,
+            initialMessage
           }: {
             input: string;
             output: string;
@@ -225,6 +234,7 @@ Examples:
             stub?: string;
             identifier?: string;
             removeBuildDirectory?: boolean;
+            initialMessage?: string;
           }
         ) => {
           try {
@@ -240,6 +250,7 @@ Examples:
               stub,
               identifier,
               removeBuildDirectory,
+              initialMessage
             });
           } catch (error) {
             console.error(error.message);

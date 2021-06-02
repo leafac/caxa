@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"compress/gzip"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -37,8 +38,9 @@ func main() {
 	}
 	footerString := executable[footerIndex+len(footerSeparator):]
 	var footer struct {
-		Identifier string   `json:"identifier"`
-		Command    []string `json:"command"`
+		Identifier     string   `json:"identifier"`
+		Command        []string `json:"command"`
+		InitialMessage string   `json:"initialMessage"`
 	}
 	if err := json.Unmarshal(footerString, &footer); err != nil {
 		log.Fatalf("caxa stub: Failed to parse JSON in footer: %v", err)
@@ -73,6 +75,11 @@ func main() {
 			}
 		}
 		if err != nil && errors.Is(err, os.ErrNotExist) {
+			ctx, cancelCtx := context.WithCancel(context.Background())
+			if footer.InitialMessage != "" {
+				go progressIndicator(ctx, footer.InitialMessage)
+			}
+
 			if err := os.MkdirAll(lock, 0755); err != nil {
 				log.Fatalf("caxa stub: Failed to create the lock directory: %v", err)
 			}
@@ -89,9 +96,11 @@ func main() {
 				log.Fatalf("caxa stub: Failed to uncompress archive: %v", err)
 			}
 
+			cancelCtx()
 			os.Remove(lock)
 			break
 		}
+
 	}
 
 	expandedCommand := make([]string, len(footer.Command))
@@ -255,6 +264,21 @@ func untar(r io.Reader, dir string) (err error) {
 		}
 	}
 	return nil
+}
+
+func progressIndicator(ctx context.Context, initialMessage string) {
+	fmt.Println(initialMessage)
+	ticker := time.NewTicker(time.Second * 5)
+
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			fmt.Print(".")
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
 func validRelativeDir(dir string) bool {
