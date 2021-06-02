@@ -22,7 +22,7 @@
 
 ### Features
 
-- Works on Windows, macOS, and Linux.
+- Works on Windows, macOS (Intel & ARM), and Linux (Intel, ARM6, ARM7, ARM64).
 - Simple to use. `npm install caxa` and call `caxa` from the command line. No need to declare which files to include; no need to bundle the application into a single file.
 - Supports any kind of Node.js project, including those with native modules (for example, [sharp](https://npm.im/sharp), [@leafac/sqlite](https://npm.im/@leafac/sqlite) (shameless plug!), [and others](https://www.npmjs.com/package/windows-build-tools#examples-of-modules-supported)).
 - Works with any Node.js version.
@@ -60,35 +60,44 @@ $ npm install --save-dev caxa
 
 ```console
 $ npx caxa --help
-Usage: caxa [options]
+Usage: caxa [options] <command...>
 
+Package Node.js applications into executable binaries.
+
+Arguments:
+  command                          The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute. The
+                                   ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at
+                                   ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument.
 
 Options:
-  -d, --directory <directory>               The directory to package.
-  -c, --command <command-and-arguments...>  The command to run and optional arguments to pass to
-                                            the command every time the executable is called. Paths
-                                            must be absolute. The ‘{{caxa}}’ placeholder is
-                                            substituted for the folder from which the package
-                                            runs. The ‘node’ executable is available at
-                                            ‘{{caxa}}/node_modules/.bin/node’. Use double quotes
-                                            to delimit the command and each argument.
-  -o, --output <output>                     The path at which to produce the executable.
-                                            Overwrites existing files/folders. On Windows must end
-                                            in ‘.exe’. On macOS may end in ‘.app’ to generate a
-                                            macOS Application Bundle.
-  -V, --version                             output the version number
-  -h, --help                                display help for command
+  -V, --version                    output the version number
+  -i, --input <input>              The input directory to package.
+  -o, --output <output>            The path where the executable will be produced. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS
+                                   Application Bundle.
+  -f, --force                      [Advanced] Overwrite output if it exists. (default: true)
+  -F, --no-force
+  -e, --exclude <path...>          [Advanced] Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match will
+                                   be excluded.
+  -d, --dedupe                     [Advanced] Run ‘npm dedupe --production’ on the build directory. (default: true)
+  -D, --no-dedupe
+  -p, --prepare-command <command>  [Advanced] Command to run on the build directory while packaging.
+  -n, --include-node               [Advanced] Copy the Node.js executable to ‘{{caxa}}/node_modules/.bin/node’. (default: true)
+  -N, --no-include-node
+  -b, --remove-build-directory     [Advanced] Remove the build directory after the build. (default: true)
+  -B, --no-remove-build-directory
+  --identifier <identifier>        [Advanced] Build identifier, which is the path in which the application will be unpacked.
+  -h, --help                       display help for command
 
 Examples:
 
   Windows:
-  > caxa --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "echo-command-line-parameters.exe"
+  > caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters.exe" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 
   macOS/Linux:
-  $ caxa --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "echo-command-line-parameters"
+  $ caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 
   macOS (Application Bundle):
-  $ caxa --directory "examples/echo-command-line-parameters" --command "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" --output "Echo Command Line Parameters.app"
+  $ caxa --input "examples/echo-command-line-parameters" --output "Echo Command Line Parameters.app" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 ```
 
 Here’s [a real-world example of using caxa](https://github.com/courselore/courselore/blob/c0b541d63fc656986ebeab4af3f3dc9bc2909972/.github/workflows/main.yml). This example includes packaging for Windows, macOS, and Linux; distributing tags with GitHub Releases Assets; distributing Insiders Builds for every push with GitHub Actions Artifacts; and deploying a binary to a server with `rsync` (and publishing an npm package as well, but that’s beyond the scope of caxa).
@@ -102,14 +111,14 @@ import caxa from "caxa";
 
 (async () => {
   await caxa({
-    directory: "examples/echo-command-line-parameters",
+    input: "examples/echo-command-line-parameters",
+    output: "echo-command-line-parameters",
     command: [
       "{{caxa}}/node_modules/.bin/node",
       "{{caxa}}/index.js",
       "some",
       "embedded arguments",
     ],
-    output: "echo-command-line-parameters",
   });
 })();
 ```
@@ -123,7 +132,7 @@ You may need to inspect `process.platform` to determine in which operating syste
 If you wish to run a command that isn’t `node`, for example, `ts-node`, you may do so by extending the `PATH`. For example, you may run the following on macOS/Linux:
 
 ```console
-$ caxa --directory <directory> --command "env" "PATH={{caxa}}/node_modules/.bin/:\$PATH" "ts-node" "{{caxa}}/index.ts" --output <output>
+$ caxa --input <input> --output <output> -- "env" "PATH={{caxa}}/node_modules/.bin/:\$PATH" "ts-node" "{{caxa}}/index.ts"
 ```
 
 #### Preserving the Executable Mode of the Binary
@@ -156,9 +165,9 @@ caxa doesn’t do anything special to your application, so there’s no built-in
 
 That said, if you really need to know whether the application is running from the packaged versions, here are some possible workarounds in increasing levels of badness:
 
-1. Set an environment variable in the `--command`, for example, `--command "env" "CAXA=true" "{{caxa}}/node_modules/.bin/node" "..."`.
-2. Have a different entrypoint for the packaged application, for example, `--command "{{caxa}}/node_modules/.bin/node" "caxa-entrypoint.js"`.
-3. Receive a command-line argument that you embed in the packaging process, for example, `--command "{{caxa}}/node_modules/.bin/node" "application.js" "--caxa"`.
+1. Set an environment variable in the command, for example, `"env" "CAXA=true" "{{caxa}}/node_modules/.bin/node" "..."`.
+2. Have a different entrypoint for the packaged application, for example, `"{{caxa}}/node_modules/.bin/node" "caxa-entrypoint.js"`.
+3. Receive a command-line argument that you embed in the packaging process, for example, `"{{caxa}}/node_modules/.bin/node" "application.js" "--caxa"`.
 4. Check whether `__dirname.startsWith(path.join(os.tmpdir(), "caxa"))`.
 
 #### The Current Working Directory
@@ -179,7 +188,7 @@ As far as I can understand, the root of the problem with creating binaries for N
 
 #### The Solution
 
-caxa builds on the idea of putting `.node` files in a temporary location, but takes it to ultimate consequence: a caxa executable is a form of [self-extracting archive](https://en.wikipedia.org/wiki/Self-extracting_archive) containing your whole project along with the `node` executable. When you first run a binary produced by caxa, it **extracts the source the whole project (and the bundled `node` executable) into a temporary location**. From there, it simply calls whatever command you told it to run when you packaged the project (via the `--command` command-line argument).
+caxa builds on the idea of putting `.node` files in a temporary location, but takes it to ultimate consequence: a caxa executable is a form of [self-extracting archive](https://en.wikipedia.org/wiki/Self-extracting_archive) containing your whole project along with the `node` executable. When you first run a binary produced by caxa, it **extracts the source the whole project (and the bundled `node` executable) into a temporary location**. From there, it simply calls whatever command you told it to run when you packaged the project.
 
 At first, this may seem too costly, but in practice it’s mostly okay: It doesn’t take too long to uncompress a project in the first place, and caxa doesn’t clean the temporary directory after running your program, so subsequent calls are effectively cached and run without overhead.
 
@@ -505,3 +514,17 @@ caxa is a misspelling of **caixa**, which is Portuguese for **box**. I find it a
 ### Conclusion
 
 As you see from this long README, despite being simple in spirit, caxa is the result of a lot of research and hard work. Simplicity is **hard**. So [support my work](#support).
+
+### Changelog
+
+#### v2.0.0
+
+- Added support for ARM, both on Linux and macOS. (Thanks @maxb2!)
+- Fixed inconsistent application directory state that would happen if you stopped caxa in the middle of the extraction or if multiple extractions are attempted at once.
+- Added several command-line parameters to customize the build.
+- **[BREAKING]**: Changed the command-line parameters:
+
+  | From          | To                                                                                                               |
+  | ------------- | ---------------------------------------------------------------------------------------------------------------- |
+  | `--directory` | `--input`                                                                                                        |
+  | `--command`   | The last arguments passed to caxa. Use `--` to separate if your command includes something that starts with `-`. |

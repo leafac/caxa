@@ -179,32 +179,31 @@ test("--force", async () => {
   ).rejects.toThrowError();
 });
 
-test("--exclude", async () => {
-  const output = path.join(
-    testsDirectory,
-    `echo-command-line-parameters--exclude${
-      process.platform === "win32" ? ".exe" : ""
-    }`
-  );
-  await execa("ts-node", [
-    "src/index.ts",
-    "--input",
-    "examples/echo-command-line-parameters",
-    "--output",
-    output,
-    "--exclude",
-    process.platform === "win32"
-      ? String.raw`examples\echo-command-line-parameters\index.js`
-      : "examples/echo-command-line-parameters/index.js",
-    "--",
-    "{{caxa}}/node_modules/.bin/node",
-    "--print",
-    'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "index.js")))',
-  ]);
-  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
-    `"false"`
-  );
-});
+if (process.platform !== "win32")
+  test("--exclude", async () => {
+    const output = path.join(
+      testsDirectory,
+      `echo-command-line-parameters--exclude${
+        process.platform === "win32" ? ".exe" : ""
+      }`
+    );
+    await execa("ts-node", [
+      "src/index.ts",
+      "--input",
+      "examples/echo-command-line-parameters",
+      "--output",
+      output,
+      "--exclude",
+      "examples/echo-command-line-parameters/index.js",
+      "--",
+      "{{caxa}}/node_modules/.bin/node",
+      "--print",
+      'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "index.js")))',
+    ]);
+    expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+      `"false"`
+    );
+  });
 
 test("--dedupe", async () => {
   const output = path.join(
