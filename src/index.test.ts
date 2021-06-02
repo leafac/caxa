@@ -196,10 +196,10 @@ test("--exclude", async () => {
     "--",
     "{{caxa}}/node_modules/.bin/node",
     "--print",
-    `JSON.stringify(require("fs").readdirSync("{{caxa}}"))`,
+    `JSON.stringify(require("fs").existsSync(require("path").join("{{caxa}}", "index.js")))`,
   ]);
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
-    `"[\\"node_modules\\",\\"package-lock.json\\",\\"package.json\\"]"`
+    `"false"`
   );
 });
 
