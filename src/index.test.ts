@@ -193,7 +193,9 @@ test("--exclude", async () => {
     "--output",
     output,
     "--exclude",
-    "examples/echo-command-line-parameters/index.js",
+    process.platform === "win32"
+      ? String.raw`examples\echo-command-line-parameters\index.js`
+      : "examples/echo-command-line-parameters/index.js",
     "--",
     "{{caxa}}/node_modules/.bin/node",
     "--print",
@@ -277,8 +279,33 @@ test("--include-node", async () => {
   );
 });
 
+test("--remove-build-directory", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters--remove-build-directory${
+      process.platform === "win32" ? ".exe" : ""
+    }`
+  );
+  await execa("ts-node", [
+    "src/index.ts",
+    "--input",
+    "examples/echo-command-line-parameters",
+    "--output",
+    output,
+    "--no-remove-build-directory",
+    "--prepare-command",
+    `"${process.execPath}" --eval "require('fs').writeFileSync('build-directory.txt', process.cwd())"`,
+    "--",
+    process.execPath,
+    "--print",
+    'JSON.stringify(require("fs").existsSync(require("fs").readFileSync(require("path").join(String.raw`{{caxa}}`, "build-directory.txt"), "utf8")))',
+  ]);
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    `"true"`
+  );
+});
+
 /*
   TODO:
-  - removeBuildDirectory
   - identifier
 */
