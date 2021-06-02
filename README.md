@@ -235,7 +235,7 @@ This is a program written in Go that:
    2. Extracts it.
 4. Runs whatever command it’s told in the footer.
 
-You may find the source code for the stub in `stubs/stub.go`, and the compiled stubs live in `stubs`. The stubs are distributed with caxa in compiled form so you don’t need a Go build system to use caxa. If you have Go build system, then you may rebuild the stubs yourself with `npm run stubs`. This Go program has no dependencies beyond the Go standard library, so simply installing Go is enough—there’s no need to setup Go modules or configure a `$GOPATH`.
+You may find the source code for the stub in `src/stub.go`. You may build the stub with `npm run build:stub`. You will need a Go compiler, but the stub has no dependencies beyond the Go standard library, so there’s no need to setup Go modules or configure a `$GOPATH`. There are pre-compiled stubs for the major platforms that are built using GitHub Actions and are available from GitHub Releases. The npm package includes a `checksums.txt` file that you may check against the log of the GitHub Actions run.
 
 This is beautiful in a way: We’re using Go’s ability to produce binaries to bootstrap Node.js’s ability to produce binaries.
 
@@ -252,7 +252,7 @@ This is JSON containing the extra information that caxa needs to run your projec
 **Fun fact:** There’s nothing Node.js-specific about the stubs. You may use them to uncompress any kind of archive and run any arbitrary command on the output! And it’s relatively straightforward to build a self-extracting archive from scratch. For example, you may run the following in macOS:
 
 ```console
-$ cp stubs/macos an-ls-caxa
+$ cp stub an-ls-caxa
 $ tar -czf - README.md >> an-ls-caxa
 $ printf "\n{ \"identifier\": \"an-ls-caxa/AN-ARBITRARY-STRING-THAT-SHOULD-BE-DIFFERENT-EVERY-TIME\", \"command\": [\"ls\", \"{{caxa}}\"] }" >> an-ls-caxa
 $ ./an-ls-caxa
