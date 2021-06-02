@@ -305,7 +305,27 @@ test("--remove-build-directory", async () => {
   );
 });
 
-/*
-  TODO:
-  - identifier
-*/
+test("--identifier", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters--identifier${
+      process.platform === "win32" ? ".exe" : ""
+    }`
+  );
+  await execa("ts-node", [
+    "src/index.ts",
+    "--input",
+    "examples/echo-command-line-parameters",
+    "--output",
+    output,
+    "--identifier",
+    "identifier",
+    "--",
+    process.execPath,
+    "--print",
+    'JSON.stringify(require("fs").existsSync(require("path").join(require("os").tmpdir(), "caxa/applications/identifier")))',
+  ]);
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    `"true"`
+  );
+});
