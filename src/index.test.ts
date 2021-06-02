@@ -72,9 +72,7 @@ if (process.platform === "darwin")
       (
         await execa(
           path.join(output, "/Contents/Resources/Echo Command Line Parameters"),
-          {
-            all: true,
-          }
+          { all: true }
         )
       ).all
     ).toMatchInlineSnapshot(`
@@ -91,7 +89,6 @@ if (process.platform !== "linux" || process.arch === "x64")
       testsDirectory,
       `native-modules${process.platform === "win32" ? ".exe" : ""}`
     );
-    await execa("npm", ["install"], { cwd: "examples/native-modules" });
     await execa("ts-node", [
       "src/index.ts",
       "--input",
@@ -207,10 +204,10 @@ test("--exclude", async () => {
 });
 
 /*
-        TODO: WRITE TESTS FOR:
-        dedupe?: boolean; 
-        prepare?: (buildDirectory: string) => Promise<void>;
-        includeNode?: boolean;
-        removeBuildDirectory?: boolean;
-        identifier?: string;
-      */
+  TODO:
+  - dedupe
+  - prepareCommand
+  - includeNode
+  - removeBuildDirectory
+  - identifier
+*/
