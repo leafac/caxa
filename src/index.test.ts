@@ -253,9 +253,32 @@ test("--prepare-command", async () => {
   );
 });
 
+test("--include-node", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters--include-node${
+      process.platform === "win32" ? ".exe" : ""
+    }`
+  );
+  await execa("ts-node", [
+    "src/index.ts",
+    "--input",
+    "examples/echo-command-line-parameters",
+    "--output",
+    output,
+    "--no-include-node",
+    "--",
+    process.execPath,
+    "--print",
+    `JSON.stringify(require("fs").existsSync(require("path").join("{{caxa}}", "node_modules/.bin/node")))`,
+  ]);
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    `"false"`
+  );
+});
+
 /*
   TODO:
-  - includeNode
   - removeBuildDirectory
   - identifier
 */
