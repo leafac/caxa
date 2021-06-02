@@ -197,7 +197,7 @@ test("--exclude", async () => {
     "--",
     "{{caxa}}/node_modules/.bin/node",
     "--print",
-    `JSON.stringify(require("fs").existsSync(require("path").join("{{caxa}}", "index.js")))`,
+    'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "index.js")))',
   ]);
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
     `"false"`
@@ -221,7 +221,7 @@ test("--dedupe", async () => {
     "--",
     "{{caxa}}/node_modules/.bin/node",
     "--print",
-    `JSON.stringify(require("fs").existsSync(require("path").join("{{caxa}}", "package-lock.json")))`,
+    'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "package-lock.json")))',
   ]);
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
     `"false"`
@@ -246,7 +246,7 @@ test("--prepare-command", async () => {
     "--",
     "{{caxa}}/node_modules/.bin/node",
     "--print",
-    `JSON.stringify(require("fs").existsSync(require("path").join("{{caxa}}", "prepare-output.txt")))`,
+    'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "prepare-output.txt")))',
   ]);
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
     `"true"`
@@ -270,7 +270,7 @@ test("--include-node", async () => {
     "--",
     process.execPath,
     "--print",
-    `JSON.stringify(require("fs").existsSync(require("path").join("{{caxa}}", "node_modules/.bin/node")))`,
+    'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "node_modules/.bin/node")))',
   ]);
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
     `"false"`
