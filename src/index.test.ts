@@ -89,6 +89,7 @@ if (process.platform !== "linux" || process.arch === "x64")
       testsDirectory,
       `native-modules${process.platform === "win32" ? ".exe" : ""}`
     );
+    await execa("npm", ["ci"], { cwd: "examples/native-modules" });
     await execa("ts-node", [
       "src/index.ts",
       "--input",
@@ -200,6 +201,55 @@ test("--exclude", async () => {
   ]);
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
     `"false"`
+  );
+});
+
+test("--dedupe", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters--dedupe${
+      process.platform === "win32" ? ".exe" : ""
+    }`
+  );
+  await execa("ts-node", [
+    "src/index.ts",
+    "--input",
+    "examples/echo-command-line-parameters",
+    "--output",
+    output,
+    "--no-dedupe",
+    "--",
+    "{{caxa}}/node_modules/.bin/node",
+    "--print",
+    `JSON.stringify(require("fs").existsSync(require("path").join("{{caxa}}", "package-lock.json")))`,
+  ]);
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    `"false"`
+  );
+});
+
+test.skip("--prepare-command", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters--prepare-command${
+      process.platform === "win32" ? ".exe" : ""
+    }`
+  );
+  await execa("ts-node", [
+    "src/index.ts",
+    "--input",
+    "examples/echo-command-line-parameters",
+    "--output",
+    output,
+    "--prepare-command",
+    `"${process.execPath}" --eval "require('fs').writeFileSync('prepare-output.txt', '')"`,
+    "--",
+    "{{caxa}}/node_modules/.bin/node",
+    "--print",
+    `JSON.stringify(require("fs").existsSync(require("path").join("{{caxa}}", "prepare-output.txt")))`,
+  ]);
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    `"true"`
   );
 });
 
