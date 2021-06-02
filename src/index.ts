@@ -24,7 +24,11 @@ export default async function caxa({
     return (path: string) => !pathsToExclude.includes(path);
   })(),
   dedupe = true,
-  prepare = async () => {},
+  prepareCommand,
+  prepare = async (buildDirectory: string) => {
+    if (prepareCommand === undefined) return;
+    await execa.command(prepareCommand, { cwd: buildDirectory });
+  },
   includeNode = true,
   removeBuildDirectory = true,
   identifier = path.join(
@@ -39,6 +43,7 @@ export default async function caxa({
   exclude?: string[];
   filter?: fs.CopyFilterSync | fs.CopyFilterAsync;
   dedupe?: boolean;
+  prepareCommand?: string;
   prepare?: (buildDirectory: string) => Promise<void>;
   includeNode?: boolean;
   removeBuildDirectory?: boolean;
@@ -146,7 +151,7 @@ if (require.main === module)
       )
       .option("-D, --no-dedupe")
       .option(
-        "-p, --prepare <command>",
+        "-p, --prepare-command <command>",
         "[Advanced] Command to run on the build directory while packaging."
       )
       .option(
@@ -194,7 +199,7 @@ Examples:
             force,
             exclude = [],
             dedupe,
-            prepare,
+            prepareCommand,
             includeNode,
             removeBuildDirectory,
             identifier,
@@ -204,7 +209,7 @@ Examples:
             force?: boolean;
             exclude?: string[];
             dedupe?: boolean;
-            prepare?: string;
+            prepareCommand?: string;
             includeNode?: boolean;
             removeBuildDirectory?: boolean;
             identifier?: string;
@@ -218,12 +223,7 @@ Examples:
               force,
               exclude,
               dedupe,
-              prepare:
-                prepare === undefined
-                  ? undefined
-                  : async (buildDirectory: string) => {
-                      await execa.command(prepare!, { cwd: buildDirectory });
-                    },
+              prepareCommand,
               includeNode,
               removeBuildDirectory,
               identifier,
