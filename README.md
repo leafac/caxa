@@ -368,6 +368,10 @@ Similar to nar. Hasn’t seen activity in 8 years.
 
 If you dig through npm, GitHub, and Google, you’ll find other projects in this space, but I couldn’t find one that had a good combination of working well, being well documented, being well maintained, and so forth.
 
+#### <https://github.com/bake-bake-bake/bakeware>
+
+A similar idea to caxa from our friends in Elixir community.
+
 #### References on Self-Extracting Archives
 
 Creating a self-extracting archive with a bash script for the stub (only works on macOS/Linux, and depends on things like `tar` being available—which they probably are):
