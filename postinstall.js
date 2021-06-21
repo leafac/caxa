@@ -13,7 +13,7 @@ const calladownload = require("calladownload");
   const stubName = stubParts.join("--");
   const downloadPath = `https://github.com/leafac/caxa/releases/download/v${package.version}/${stubName}`;
   await calladownload(downloadPath, stubPath);
-  await fs.chmod(0o755);
+  await fs.chmod(stubPath, 0o755);
   const checksumsPath = path.join(__dirname, "checksums.txt");
   if (!fs.existsSync(checksumsPath)) process.exit(0);
   const checksums = await fs.readFile(checksumsPath, "utf8");
