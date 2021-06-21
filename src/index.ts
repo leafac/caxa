@@ -151,7 +151,7 @@ if (require.main === module)
       .option("-F, --no-force")
       .option(
         "-e, --exclude <path...>",
-        "[Advanced] Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match will be excluded."
+        "[Advanced] Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match will be excluded. [Super-Advanced, Please don’t use] If you wish to emulate ‘--include’, you may use ‘--exclude '*' '.*' 'path-to-include' ...’. The problem with ‘--include’ is that if you change your project structure but forget to change the caxa invocation, then things will subtly fail only in the packaged version."
       )
       .option(
         "-d, --dedupe",
