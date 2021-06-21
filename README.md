@@ -531,6 +531,7 @@ As you see from this long README, despite being simple in spirit, caxa is the re
 - Added the `include` advanced, advanced option to give an allowlist for the files that will be included in your caxa binary.
 - Added the `initial-message` advanced option to print a message when uncompressing.
 - Added the `progress` advanced option to print a progress bar when uncompressing.
+- Fixed the `exclude` advanced option in Windows.
 
 #### v2.0.0
 

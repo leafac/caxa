@@ -83,30 +83,29 @@ if (process.platform === "darwin")
     `);
   });
 
-if (process.platform !== "linux" || process.arch === "x64")
-  test("native-modules", async () => {
-    const output = path.join(
-      testsDirectory,
-      `native-modules${process.platform === "win32" ? ".exe" : ""}`
-    );
-    await execa("npm", ["ci"], { cwd: "examples/native-modules" });
-    await execa("ts-node", [
-      "src/index.ts",
-      "--input",
-      "examples/native-modules",
-      "--output",
-      output,
-      "--",
-      "{{caxa}}/node_modules/.bin/node",
-      "{{caxa}}/index.js",
-    ]);
-    expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
+test("native-modules", async () => {
+  const output = path.join(
+    testsDirectory,
+    `native-modules${process.platform === "win32" ? ".exe" : ""}`
+  );
+  await execa("npm", ["ci"], { cwd: "examples/native-modules" });
+  await execa("ts-node", [
+    "src/index.ts",
+    "--input",
+    "examples/native-modules",
+    "--output",
+    output,
+    "--",
+    "{{caxa}}/node_modules/.bin/node",
+    "{{caxa}}/index.js",
+  ]);
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
           "@leafac/sqlite: {
             \\"example\\": \\"caxa native modules\\"
           }
           sharp: 48"
       `);
-  });
+});
 
 test("false", async () => {
   const output = path.join(
@@ -179,31 +178,30 @@ test("--force", async () => {
   ).rejects.toThrowError();
 });
 
-if (process.platform !== "win32")
-  test("--exclude", async () => {
-    const output = path.join(
-      testsDirectory,
-      `echo-command-line-parameters--exclude${
-        process.platform === "win32" ? ".exe" : ""
-      }`
-    );
-    await execa("ts-node", [
-      "src/index.ts",
-      "--input",
-      "examples/echo-command-line-parameters",
-      "--output",
-      output,
-      "--exclude",
-      "examples/echo-command-line-parameters/index.js",
-      "--",
-      "{{caxa}}/node_modules/.bin/node",
-      "--print",
-      'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "index.js")))',
-    ]);
-    expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
-      `"false"`
-    );
-  });
+test("--exclude", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters--exclude${
+      process.platform === "win32" ? ".exe" : ""
+    }`
+  );
+  await execa("ts-node", [
+    "src/index.ts",
+    "--input",
+    "examples/echo-command-line-parameters",
+    "--output",
+    output,
+    "--exclude",
+    "examples/echo-command-line-parameters/index.js",
+    "--",
+    "{{caxa}}/node_modules/.bin/node",
+    "--print",
+    'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "index.js")))',
+  ]);
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    `"false"`
+  );
+});
 
 test("--dedupe", async () => {
   const output = path.join(
@@ -278,6 +276,31 @@ test("--include-node", async () => {
   );
 });
 
+test("--identifier", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters--identifier${
+      process.platform === "win32" ? ".exe" : ""
+    }`
+  );
+  await execa("ts-node", [
+    "src/index.ts",
+    "--input",
+    "examples/echo-command-line-parameters",
+    "--output",
+    output,
+    "--identifier",
+    "identifier",
+    "--",
+    process.execPath,
+    "--print",
+    'JSON.stringify(require("fs").existsSync(require("path").join(require("os").tmpdir(), "caxa/applications/identifier")))',
+  ]);
+  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    `"true"`
+  );
+});
+
 test("--remove-build-directory", async () => {
   const output = path.join(
     testsDirectory,
@@ -304,27 +327,28 @@ test("--remove-build-directory", async () => {
   );
 });
 
-test("--identifier", async () => {
+test("--stub", async () => {
   const output = path.join(
     testsDirectory,
-    `echo-command-line-parameters--identifier${
+    `echo-command-line-parameters--stub${
       process.platform === "win32" ? ".exe" : ""
     }`
   );
-  await execa("ts-node", [
-    "src/index.ts",
-    "--input",
-    "examples/echo-command-line-parameters",
-    "--output",
-    output,
-    "--identifier",
-    "identifier",
-    "--",
-    process.execPath,
-    "--print",
-    'JSON.stringify(require("fs").existsSync(require("path").join(require("os").tmpdir(), "caxa/applications/identifier")))',
-  ]);
-  expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
-    `"true"`
-  );
+  await expect(
+    execa("ts-node", [
+      "src/index.ts",
+      "--input",
+      "examples/echo-command-line-parameters",
+      "--output",
+      output,
+      "--stub",
+      "/a-path-that-doesnt-exist",
+      "--",
+      "{{caxa}}/node_modules/.bin/node",
+      "{{caxa}}/index.js",
+      "some",
+      "embedded arguments",
+      "--an-option-thats-part-of-the-command",
+    ])
+  ).rejects.toThrowError();
 });
