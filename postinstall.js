@@ -2,6 +2,7 @@ const fs = require("fs-extra");
 const path = require("path");
 const package = require("./package.json");
 const crypto = require("crypto");
+const { http, https } = require('follow-redirects');
 const calladownload = require("calladownload");
 
 (async () => {
@@ -12,7 +13,7 @@ const calladownload = require("calladownload");
     stubParts.push(process.config.variables.arm_version);
   const stubName = stubParts.join("--");
   const downloadPath = `https://github.com/leafac/caxa/releases/download/v${package.version}/${stubName}`;
-  await calladownload(downloadPath, stubPath);
+  await calladownload(downloadPath, stubPath, { httpsAgent: https, httpAgent: http });
   await fs.chmod(stubPath, 0o755);
   const checksumsPath = path.join(__dirname, "checksums.txt");
   if (!fs.existsSync(checksumsPath)) process.exit(0);
