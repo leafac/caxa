@@ -111,6 +111,12 @@ export default async function caxa({
       { mode: 0o755 }
     );
   } else {
+    /*
+const stubParts = ["stub", process.platform, process.arch];
+  if (process.platform === "linux" && process.arch === "arm")
+    stubParts.push(process.config.variables.arm_version);
+  const stubName = stubParts.join("--");
+    */
     await fs.copyFile(path.join(__dirname, "../stub"), output);
     await fs.chmod(output, 0o755);
     const archive = archiver("tar", { gzip: true });

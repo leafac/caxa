@@ -20,8 +20,7 @@
   "scripts": {
     "test": "prettier --check \"src/**/*\" --end-of-line auto && jest",
     "prepare": "tsc",
-    "build:stub": "shx rm stub && cross-env CGO_ENABLED=0 go build -o stub src/stub.go && shx echo >> stub && shx echo CAXACAXACAXA >> stub",
-    "postinstall": "node postinstall.js"
+    "build:stub": "shx rm stub && cross-env CGO_ENABLED=0 go build -o stub src/stub.go && shx echo >> stub && shx echo CAXACAXACAXA >> stub"
   },
   "dependencies": {
     "archiver": "^5.2.0",
