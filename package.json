@@ -25,9 +25,9 @@
   },
   "dependencies": {
     "archiver": "^5.2.0",
+    "calladownload": "^1.2.1",
     "commander": "^7.0.0",
     "crypto-random-string": "^3.3.0",
-    "download": "^8.0.0",
     "execa": "^4.1.0",
     "fs-extra": "^9.1.0",
     "globby": "^11.0.3"
