@@ -30,6 +30,10 @@ export default async function caxa({
     await execa.command(prepareCommand, { cwd: buildDirectory, shell: true });
   },
   includeNode = true,
+  stub = path.join(
+    __dirname,
+    `../stubs/stub--${process.platform}--${process.arch}`
+  ),
   identifier = path.join(
     path.basename(path.basename(output, ".app"), ".exe"),
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
@@ -46,6 +50,7 @@ export default async function caxa({
   prepareCommand?: string;
   prepare?: (buildDirectory: string) => Promise<void>;
   includeNode?: boolean;
+  stub?: string;
   identifier?: string;
   removeBuildDirectory?: boolean;
 }): Promise<void> {
@@ -111,11 +116,7 @@ export default async function caxa({
       { mode: 0o755 }
     );
   } else {
-    const stub = path.join(
-      __dirname,
-      `../stubs/stub--${process.platform}--${process.arch}`
-    );
-    if (!fs.existsSync(stub))
+    if (!(await fs.pathExists(stub)))
       throw new Error(
         `Stub not found (your operating system / architecture may be unsupported): ‘${stub}’`
       );
@@ -168,6 +169,7 @@ if (require.main === module)
         true
       )
       .option("-N, --no-include-node")
+      .option("-s, --stub <path>", "[Advanced] Path to the stub.")
       .option(
         "--identifier <identifier>",
         "[Advanced] Build identifier, which is the path in which the application will be unpacked."
@@ -209,6 +211,7 @@ Examples:
             dedupe,
             prepareCommand,
             includeNode,
+            stub,
             identifier,
             removeBuildDirectory,
           }: {
@@ -219,6 +222,7 @@ Examples:
             dedupe?: boolean;
             prepareCommand?: string;
             includeNode?: boolean;
+            stub?: string;
             identifier?: string;
             removeBuildDirectory?: boolean;
           }
@@ -233,6 +237,7 @@ Examples:
               dedupe,
               prepareCommand,
               includeNode,
+              stub,
               identifier,
               removeBuildDirectory,
             });
