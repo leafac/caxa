@@ -30,11 +30,11 @@ export default async function caxa({
     await execa.command(prepareCommand, { cwd: buildDirectory, shell: true });
   },
   includeNode = true,
-  removeBuildDirectory = true,
   identifier = path.join(
     path.basename(path.basename(output, ".app"), ".exe"),
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   ),
+  removeBuildDirectory = true,
 }: {
   input: string;
   output: string;
@@ -46,8 +46,8 @@ export default async function caxa({
   prepareCommand?: string;
   prepare?: (buildDirectory: string) => Promise<void>;
   includeNode?: boolean;
-  removeBuildDirectory?: boolean;
   identifier?: string;
+  removeBuildDirectory?: boolean;
 }): Promise<void> {
   if (!(await fs.pathExists(input)) || !(await fs.lstat(input)).isDirectory())
     throw new Error(
@@ -111,13 +111,15 @@ export default async function caxa({
       { mode: 0o755 }
     );
   } else {
-    /*
-const stubParts = ["stub", process.platform, process.arch];
-  if (process.platform === "linux" && process.arch === "arm")
-    stubParts.push(process.config.variables.arm_version);
-  const stubName = stubParts.join("--");
-    */
-    await fs.copyFile(path.join(__dirname, "../stub"), output);
+    const stub = path.join(
+      __dirname,
+      `../stubs/stub--${process.platform}--${process.arch}`
+    );
+    if (!fs.existsSync(stub))
+      throw new Error(
+        `Stub not found (your operating system / architecture may be unsupported): ‘${stub}’`
+      );
+    await fs.copyFile(stub, output);
     await fs.chmod(output, 0o755);
     const archive = archiver("tar", { gzip: true });
     const archiveStream = fs.createWriteStream(output, { flags: "a" });
@@ -167,15 +169,15 @@ if (require.main === module)
       )
       .option("-N, --no-include-node")
       .option(
+        "--identifier <identifier>",
+        "[Advanced] Build identifier, which is the path in which the application will be unpacked."
+      )
+      .option(
         "-b, --remove-build-directory",
         "[Advanced] Remove the build directory after the build.",
         true
       )
       .option("-B, --no-remove-build-directory")
-      .option(
-        "--identifier <identifier>",
-        "[Advanced] Build identifier, which is the path in which the application will be unpacked."
-      )
       .arguments("<command...>")
       .description("Package Node.js applications into executable binaries.", {
         command:
@@ -207,8 +209,8 @@ Examples:
             dedupe,
             prepareCommand,
             includeNode,
-            removeBuildDirectory,
             identifier,
+            removeBuildDirectory,
           }: {
             input: string;
             output: string;
@@ -217,8 +219,8 @@ Examples:
             dedupe?: boolean;
             prepareCommand?: string;
             includeNode?: boolean;
-            removeBuildDirectory?: boolean;
             identifier?: string;
+            removeBuildDirectory?: boolean;
           }
         ) => {
           try {
@@ -231,8 +233,8 @@ Examples:
               dedupe,
               prepareCommand,
               includeNode,
-              removeBuildDirectory,
               identifier,
+              removeBuildDirectory,
             });
           } catch (error) {
             console.error(error.message);
