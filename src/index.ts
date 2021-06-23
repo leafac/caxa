@@ -39,7 +39,7 @@ export default async function caxa({
     `../stubs/stub--${process.platform}--${process.arch}`
   ),
   identifier = path.join(
-    path.basename(path.basename(output, ".app"), ".exe"),
+    path.basename(path.basename(path.basename(output, ".app"), ".exe"), ".sh"),
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   ),
   removeBuildDirectory = true,
@@ -122,14 +122,28 @@ export default async function caxa({
   } else if (output.endsWith(".sh")) {
     if (process.platform === "win32")
       throw new Error("The Shell Stub (.sh) isn’t supported in Windows.");
-    await fs.writeFile(
-      output,
+    let stub =
       bash`
         #!/usr/bin/env sh
-        echo "Hello World"
-      `,
-      { mode: 0o755 }
+        export CAXA_TEMPORARY_DIRECTORY="$(dirname $(mktemp))/caxa/applications/${identifier}"
+        mkdir -p "$CAXA_TEMPORARY_DIRECTORY"
+        tail -n+{{caxa-number-of-lines}} "$0" | tar -xz -C "$CAXA_TEMPORARY_DIRECTORY"
+        exec ${command
+          .map(
+            (commandPart) =>
+              `"${commandPart.replaceAll(
+                "{{caxa}}",
+                `"$CAXA_TEMPORARY_DIRECTORY"`
+              )}"`
+          )
+          .join(" ")} "$@"
+      ` + "\n";
+    stub = stub.replace(
+      "{{caxa-number-of-lines}}",
+      String(stub.split("\n").length)
     );
+    await fs.writeFile(output, stub, { mode: 0o755 });
+    await appendTarballOfBuildDirectoryToOutput();
   } else {
     if (!(await fs.pathExists(stub)))
       throw new Error(
@@ -137,6 +151,13 @@ export default async function caxa({
       );
     await fs.copyFile(stub, output);
     await fs.chmod(output, 0o755);
+    await appendTarballOfBuildDirectoryToOutput();
+    await fs.appendFile(output, "\n" + JSON.stringify({ identifier, command }));
+  }
+
+  if (removeBuildDirectory) await fs.remove(buildDirectory);
+
+  async function appendTarballOfBuildDirectoryToOutput(): Promise<void> {
     const archive = archiver("tar", { gzip: true });
     const archiveStream = fs.createWriteStream(output, { flags: "a" });
     archive.pipe(archiveStream);
@@ -147,10 +168,7 @@ export default async function caxa({
       archiveStream.on("finish", resolve);
       archiveStream.on("error", reject);
     });
-    await fs.appendFile(output, "\n" + JSON.stringify({ identifier, command }));
   }
-
-  if (removeBuildDirectory) await fs.remove(buildDirectory);
 }
 
 if (require.main === module)
