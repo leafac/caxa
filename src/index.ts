@@ -9,6 +9,7 @@ import archiver from "archiver";
 import cryptoRandomString from "crypto-random-string";
 import commander from "commander";
 import globby from "globby";
+import bash from "dedent";
 
 export default async function caxa({
   input,
@@ -118,6 +119,17 @@ export default async function caxa({
         .join(" ")}`,
       { mode: 0o755 }
     );
+  } else if (output.endsWith(".sh")) {
+    if (process.platform === "win32")
+      throw new Error("The Shell Stub (.sh) isn’t supported in Windows.");
+    await fs.writeFile(
+      output,
+      bash`
+        #!/usr/bin/env sh
+        echo "Hello World"
+      `,
+      { mode: 0o755 }
+    );
   } else {
     if (!(await fs.pathExists(stub)))
       throw new Error(
@@ -201,6 +213,9 @@ Examples:
 
   macOS (Application Bundle):
   $ caxa --input "examples/echo-command-line-parameters" --output "Echo Command Line Parameters.app" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
+
+  macOS/Linux (Shell Stub):
+  $ caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters.sh" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 `
       )
       .action(
