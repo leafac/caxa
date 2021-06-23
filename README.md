@@ -523,16 +523,16 @@ As you see from this long README, despite being simple in spirit, caxa is the re
 
 #### v2.1.0
 
-- Added a new stub strategy: Bash.
+- TODO: Added a new stub strategy: Bash.
 - Simplified the build/distribution of stubs.
   - Cross-compile the stubs, to simplify the GitHub Actions architecture.
   - Check the stubs in version control, to simplify distribution and the workflow of people who want to help in the JavaScript part of caxa and who may not want to setup Go.
   - Distribute the stubs with the npm package to avoid issues like: https://github.com/leafac/caxa/issues/26, https://github.com/leafac/caxa/pull/28, https://github.com/leafac/caxa/issues/31, and https://github.com/leafac/caxa/pull/32.
-- Added the `stub` advanced option to specify a custom stub.
-- Added the documentation of how to emulate an `include` option, and why that’s probably a bad idea.
-- Added the `initial-message` advanced option to print a message when uncompressing.
-- Added the `progress` advanced option to print a progress bar when uncompressing.
-- Fixed the `exclude` advanced option in Windows.
+- Added the `--stub` advanced option to specify a custom stub.
+- Added documentation on how to emulate an `--include` option, and why that’s probably a bad idea.
+- TODO: Added the `--initial-message` advanced option to print a message when uncompressing.
+- TODO: Added the `--progress` advanced option to print a progress bar when uncompressing.
+- Fixed the `--exclude` advanced option in Windows.
 
 #### v2.0.0
 
