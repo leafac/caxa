@@ -83,6 +83,39 @@ if (process.platform === "darwin")
     `);
   });
 
+if (process.platform !== "win32")
+  test("echo-command-line-parameters.sh", async () => {
+    const output = path.join(testsDirectory, "echo-command-line-parameters.sh");
+    await execa("ts-node", [
+      "src/index.ts",
+      "--input",
+      "examples/echo-command-line-parameters",
+      "--output",
+      output,
+      "--",
+      "{{caxa}}/node_modules/.bin/node",
+      "{{caxa}}/index.js",
+      "some",
+      "embedded arguments",
+      "--an-option-thats-part-of-the-command",
+    ]);
+    expect(
+      (
+        await execa(output, ["and", "some arguments passed on the call"], {
+          all: true,
+        })
+      ).all
+    ).toMatchInlineSnapshot(`
+      "[
+        \\"some\\",
+        \\"embedded arguments\\",
+        \\"--an-option-thats-part-of-the-command\\",
+        \\"and\\",
+        \\"some arguments passed on the call\\"
+      ]"
+    `);
+  });
+
 test("native-modules", async () => {
   const output = path.join(
     testsDirectory,

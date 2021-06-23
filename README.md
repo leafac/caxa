@@ -523,7 +523,7 @@ As you see from this long README, despite being simple in spirit, caxa is the re
 
 #### v2.1.0
 
-- TODO: Added a new stub strategy: Bash.
+- Added a new stub strategy: Bash.
 - Simplified the build/distribution of stubs.
   - Cross-compile the stubs, to simplify the GitHub Actions architecture.
   - Check the stubs in version control, to simplify distribution and the workflow of people who want to help in the JavaScript part of caxa and who may not want to setup Go.
