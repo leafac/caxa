@@ -17,11 +17,14 @@ export default async function caxa({
   force = true,
   exclude = [],
   filter = (() => {
-    const pathsToExclude = globby.sync(exclude, {
-      expandDirectories: false,
-      onlyFiles: false,
-    });
-    return (path: string) => !pathsToExclude.includes(path);
+    const pathsToExclude = globby
+      .sync(exclude, {
+        expandDirectories: false,
+        onlyFiles: false,
+      })
+      .map((pathToExclude: string) => path.join(pathToExclude));
+    return (pathToCopy: string) =>
+      !pathsToExclude.includes(path.join(pathToCopy));
   })(),
   dedupe = true,
   prepareCommand,
