@@ -125,15 +125,33 @@ export default async function caxa({
     let stub =
       bash`
         #!/usr/bin/env sh
-        export CAXA_TEMPORARY_DIRECTORY="$(dirname $(mktemp))/caxa/applications/${identifier}"
-        mkdir -p "$CAXA_TEMPORARY_DIRECTORY"
-        tail -n+{{caxa-number-of-lines}} "$0" | tar -xz -C "$CAXA_TEMPORARY_DIRECTORY"
+        export CAXA_TEMPORARY_DIRECTORY="$(dirname $(mktemp))/caxa"
+        for (( CAXA_EXTRACTION_ATTEMPT=0; ; CAXA_EXTRACTION_ATTEMPT++ ))
+        do
+          export CAXA_LOCK="$CAXA_TEMPORARY_DIRECTORY/locks/${identifier}/$CAXA_EXTRACTION_ATTEMPT"
+          export CAXA_APPLICATION_DIRECTORY="$CAXA_TEMPORARY_DIRECTORY/applications/${identifier}/$CAXA_EXTRACTION_ATTEMPT"
+          if [ -d "$CAXA_APPLICATION_DIRECTORY" ] 
+          then
+            if [ -d "$CAXA_LOCK" ] 
+            then
+              continue
+            else
+              break
+            fi
+          else
+            mkdir -p "$CAXA_LOCK"
+            mkdir -p "$CAXA_APPLICATION_DIRECTORY"
+            tail -n+{{caxa-number-of-lines}} "$0" | tar -xz -C "$CAXA_APPLICATION_DIRECTORY"
+            rmdir "$CAXA_LOCK"
+            break
+          fi
+        done
         exec ${command
           .map(
             (commandPart) =>
               `"${commandPart.replaceAll(
                 "{{caxa}}",
-                `"$CAXA_TEMPORARY_DIRECTORY"`
+                `"$CAXA_APPLICATION_DIRECTORY"`
               )}"`
           )
           .join(" ")} "$@"
