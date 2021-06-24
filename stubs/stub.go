@@ -77,7 +77,7 @@ func main() {
 		if err != nil && errors.Is(err, os.ErrNotExist) {
 			ctx, cancelCtx := context.WithCancel(context.Background())
 			if footer.UncompressionMessage != "" {
-				go progressIndicator(ctx, footer.UncompressionMessage)
+				go progressBar(ctx, footer.UncompressionMessage)
 			}
 
 			if err := os.MkdirAll(lock, 0755); err != nil {
@@ -266,7 +266,7 @@ func untar(r io.Reader, dir string) (err error) {
 	return nil
 }
 
-func progressIndicator(ctx context.Context, uncompressionMessage string) {
+func progressBar(ctx context.Context, uncompressionMessage string) {
 	fmt.Println(uncompressionMessage)
 	ticker := time.NewTicker(time.Second * 5)
 
