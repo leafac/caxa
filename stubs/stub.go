@@ -96,8 +96,9 @@ func main() {
 				log.Fatalf("caxa stub: Failed to uncompress archive: %v", err)
 			}
 
-			cancelCtx()
 			os.Remove(lock)
+
+			cancelCtx()
 			break
 		}
 
