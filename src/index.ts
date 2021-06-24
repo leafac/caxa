@@ -43,7 +43,7 @@ export default async function caxa({
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   ),
   removeBuildDirectory = true,
-  initialMessage,
+  uncompressionMessage,
 }: {
   input: string;
   output: string;
@@ -58,7 +58,7 @@ export default async function caxa({
   stub?: string;
   identifier?: string;
   removeBuildDirectory?: boolean;
-  initialMessage?: string;
+  uncompressionMessage?: string;
 }): Promise<void> {
   if (!(await fs.pathExists(input)) || !(await fs.lstat(input)).isDirectory())
     throw new Error(
@@ -172,7 +172,10 @@ export default async function caxa({
     await fs.copyFile(stub, output);
     await fs.chmod(output, 0o755);
     await appendTarballOfBuildDirectoryToOutput();
-    await fs.appendFile(output, "\n" + JSON.stringify({ identifier, command }));
+    await fs.appendFile(
+      output,
+      "\n" + JSON.stringify({ identifier, command, uncompressionMessage })
+    );
   }
 
   if (removeBuildDirectory) await fs.remove(buildDirectory);
@@ -188,11 +191,6 @@ export default async function caxa({
       archiveStream.on("finish", resolve);
       archiveStream.on("error", reject);
     });
-
-    await fs.appendFile(
-      output,
-      "\n" + JSON.stringify({ identifier, command, initialMessage })
-    );
   }
 }
 
@@ -239,8 +237,8 @@ if (require.main === module)
       )
       .option("-B, --no-remove-build-directory")
       .option(
-        "-m, --initial-message <message>",
-        "Allows an optional message to be displayed on initial run as this can take some time."
+        "-m, --uncompression-message <message>",
+        "[Advanced] A message to show when uncompressing, which may take some time to finish."
       )
       .arguments("<command...>")
       .description("Package Node.js applications into executable binaries.", {
@@ -279,7 +277,7 @@ Examples:
             stub,
             identifier,
             removeBuildDirectory,
-            initialMessage,
+            uncompressionMessage,
           }: {
             input: string;
             output: string;
@@ -291,7 +289,7 @@ Examples:
             stub?: string;
             identifier?: string;
             removeBuildDirectory?: boolean;
-            initialMessage?: string;
+            uncompressionMessage?: string;
           }
         ) => {
           try {
@@ -307,7 +305,7 @@ Examples:
               stub,
               identifier,
               removeBuildDirectory,
-              initialMessage,
+              uncompressionMessage,
             });
           } catch (error) {
             console.error(error.message);
