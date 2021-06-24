@@ -38,9 +38,9 @@ func main() {
 	}
 	footerString := executable[footerIndex+len(footerSeparator):]
 	var footer struct {
-		Identifier     string   `json:"identifier"`
-		Command        []string `json:"command"`
-		InitialMessage string   `json:"initialMessage"`
+		Identifier           string   `json:"identifier"`
+		Command              []string `json:"command"`
+		UncompressionMessage string   `json:"uncompressionMessage"`
 	}
 	if err := json.Unmarshal(footerString, &footer); err != nil {
 		log.Fatalf("caxa stub: Failed to parse JSON in footer: %v", err)
@@ -76,8 +76,8 @@ func main() {
 		}
 		if err != nil && errors.Is(err, os.ErrNotExist) {
 			ctx, cancelCtx := context.WithCancel(context.Background())
-			if footer.InitialMessage != "" {
-				go progressIndicator(ctx, footer.InitialMessage)
+			if footer.UncompressionMessage != "" {
+				go progressIndicator(ctx, footer.UncompressionMessage)
 			}
 
 			if err := os.MkdirAll(lock, 0755); err != nil {
@@ -266,8 +266,8 @@ func untar(r io.Reader, dir string) (err error) {
 	return nil
 }
 
-func progressIndicator(ctx context.Context, initialMessage string) {
-	fmt.Println(initialMessage)
+func progressIndicator(ctx context.Context, uncompressionMessage string) {
+	fmt.Println(uncompressionMessage)
 	ticker := time.NewTicker(time.Second * 5)
 
 	defer ticker.Stop()
