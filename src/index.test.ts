@@ -309,6 +309,32 @@ test("--include-node", async () => {
   );
 });
 
+test("--stub", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters--stub${
+      process.platform === "win32" ? ".exe" : ""
+    }`
+  );
+  await expect(
+    execa("ts-node", [
+      "src/index.ts",
+      "--input",
+      "examples/echo-command-line-parameters",
+      "--output",
+      output,
+      "--stub",
+      "/a-path-that-doesnt-exist",
+      "--",
+      "{{caxa}}/node_modules/.bin/node",
+      "{{caxa}}/index.js",
+      "some",
+      "embedded arguments",
+      "--an-option-thats-part-of-the-command",
+    ])
+  ).rejects.toThrowError();
+});
+
 test("--identifier", async () => {
   const output = path.join(
     testsDirectory,
@@ -358,30 +384,4 @@ test("--remove-build-directory", async () => {
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
     `"true"`
   );
-});
-
-test("--stub", async () => {
-  const output = path.join(
-    testsDirectory,
-    `echo-command-line-parameters--stub${
-      process.platform === "win32" ? ".exe" : ""
-    }`
-  );
-  await expect(
-    execa("ts-node", [
-      "src/index.ts",
-      "--input",
-      "examples/echo-command-line-parameters",
-      "--output",
-      output,
-      "--stub",
-      "/a-path-that-doesnt-exist",
-      "--",
-      "{{caxa}}/node_modules/.bin/node",
-      "{{caxa}}/index.js",
-      "some",
-      "embedded arguments",
-      "--an-option-thats-part-of-the-command",
-    ])
-  ).rejects.toThrowError();
 });
