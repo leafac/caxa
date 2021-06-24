@@ -243,7 +243,7 @@ if (require.main === module)
       .option("-B, --no-remove-build-directory")
       .option(
         "-m, --uncompression-message <message>",
-        "[Advanced] A message to show when uncompressing. You may want to warn your users that this may take some time to finish."
+        "[Advanced] A message to show when uncompressing, for example, ‘This may take a while to run the first time, please wait...’."
       )
       .arguments("<command...>")
       .description("Package Node.js applications into executable binaries.", {

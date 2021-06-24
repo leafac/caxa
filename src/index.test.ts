@@ -385,3 +385,30 @@ test("--remove-build-directory", async () => {
     `"true"`
   );
 });
+
+test("--uncompression-message", async () => {
+  const output = path.join(
+    testsDirectory,
+    `echo-command-line-parameters--uncompression-message${
+      process.platform === "win32" ? ".exe" : ""
+    }`
+  );
+  await execa("ts-node", [
+    "src/index.ts",
+    "--input",
+    "examples/echo-command-line-parameters",
+    "--output",
+    output,
+    "--uncompression-message",
+    "This may take a while to run the first time, please wait...",
+    "--",
+    "{{caxa}}/node_modules/.bin/node",
+    "{{caxa}}/index.js",
+    "some",
+    "embedded arguments",
+    "--an-option-thats-part-of-the-command",
+  ]);
+  expect((await execa(output, { all: true })).all).toMatch(
+    "This may take a while to run the first time, please wait..."
+  );
+});

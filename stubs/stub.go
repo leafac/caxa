@@ -77,11 +77,10 @@ func main() {
 		if err != nil && errors.Is(err, os.ErrNotExist) {
 			ctx, cancelCtx := context.WithCancel(context.Background())
 			if footer.UncompressionMessage != "" {
-				fmt.Fprintln(os.Stderr, footer.UncompressionMessage)
+				fmt.Fprint(os.Stderr, footer.UncompressionMessage)
 				go func() {
 					ticker := time.NewTicker(time.Second * 5)
 					defer ticker.Stop()
-					fmt.Fprint(os.Stderr, ".")
 					for {
 						select {
 						case <-ticker.C:
