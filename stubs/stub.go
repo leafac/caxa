@@ -77,7 +77,20 @@ func main() {
 		if err != nil && errors.Is(err, os.ErrNotExist) {
 			ctx, cancelCtx := context.WithCancel(context.Background())
 			if footer.UncompressionMessage != "" {
-				go progressBar(ctx, footer.UncompressionMessage)
+				fmt.Fprintln(os.Stderr, footer.UncompressionMessage)
+				go func() {
+					ticker := time.NewTicker(time.Second * 5)
+					defer ticker.Stop()
+					for {
+						select {
+						case <-ticker.C:
+							fmt.Fprint(os.Stderr, ".")
+						case <-ctx.Done():
+							fmt.Fprintln(os.Stderr, "")
+							return
+						}
+					}
+				}()
 			}
 
 			if err := os.MkdirAll(lock, 0755); err != nil {
@@ -264,22 +277,6 @@ func untar(r io.Reader, dir string) (err error) {
 		}
 	}
 	return nil
-}
-
-func progressBar(ctx context.Context, uncompressionMessage string) {
-	fmt.Fprintln(os.Stderr, uncompressionMessage)
-	ticker := time.NewTicker(time.Second * 5)
-
-	defer ticker.Stop()
-	for {
-		select {
-		case <-ticker.C:
-			fmt.Fprint(os.Stderr, ".")
-		case <-ctx.Done():
-			fmt.Fprintln(os.Stderr, "")
-			return
-		}
-	}
 }
 
 func validRelativeDir(dir string) bool {
