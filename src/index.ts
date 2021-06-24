@@ -141,6 +141,11 @@ export default async function caxa({
               break
             fi
           else
+            ${
+              uncompressionMessage === undefined
+                ? bash``
+                : bash`echo "${uncompressionMessage}" >&2`
+            }
             mkdir -p "$CAXA_LOCK"
             mkdir -p "$CAXA_APPLICATION_DIRECTORY"
             tail -n+{{caxa-number-of-lines}} "$0" | tar -xz -C "$CAXA_APPLICATION_DIRECTORY"
@@ -238,7 +243,7 @@ if (require.main === module)
       .option("-B, --no-remove-build-directory")
       .option(
         "-m, --uncompression-message <message>",
-        "[Advanced] A message to show when uncompressing, which may take some time to finish."
+        "[Advanced] A message to show when uncompressing. You may want to warn your users that this may take some time to finish."
       )
       .arguments("<command...>")
       .description("Package Node.js applications into executable binaries.", {
