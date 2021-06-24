@@ -81,6 +81,7 @@ func main() {
 				go func() {
 					ticker := time.NewTicker(time.Second * 5)
 					defer ticker.Stop()
+					fmt.Fprint(os.Stderr, ".")
 					for {
 						select {
 						case <-ticker.C:
