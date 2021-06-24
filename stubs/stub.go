@@ -274,8 +274,9 @@ func progressBar(ctx context.Context, uncompressionMessage string) {
 	for {
 		select {
 		case <-ticker.C:
-			fmt.Print(".")
+			fmt.Fprint(os.Stderr, ".")
 		case <-ctx.Done():
+			fmt.Fprintln(os.Stderr, "")
 			return
 		}
 	}
