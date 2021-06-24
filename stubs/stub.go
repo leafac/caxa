@@ -267,7 +267,7 @@ func untar(r io.Reader, dir string) (err error) {
 }
 
 func progressBar(ctx context.Context, uncompressionMessage string) {
-	fmt.Println(uncompressionMessage)
+	fmt.Fprintln(os.Stderr, uncompressionMessage)
 	ticker := time.NewTicker(time.Second * 5)
 
 	defer ticker.Stop()
