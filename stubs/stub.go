@@ -101,7 +101,6 @@ func main() {
 			cancelCtx()
 			break
 		}
-
 	}
 
 	expandedCommand := make([]string, len(footer.Command))
