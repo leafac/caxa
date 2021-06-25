@@ -523,15 +523,14 @@ As you see from this long README, despite being simple in spirit, caxa is the re
 
 #### v2.1.0
 
-- Added a new stub strategy: Bash.
+- Added a new stub strategy: Shell Stub. It’s a simple Bash script that does the same as the Go stub, except that it takes less space (about 10 lines as opposed to a 2MB Go binary), but it depends on some tools being installed on the end-user machine, for example, `tar`, `tail`, and so forth.
 - Simplified the build/distribution of stubs.
-  - Cross-compile the stubs, to simplify the GitHub Actions architecture.
-  - Check the stubs in version control, to simplify distribution and the workflow of people who want to help in the JavaScript part of caxa and who may not want to setup Go.
+  - Cross-compile the stubs, to simplify the GitHub Actions architecture. We were already cross-compiling for macOS ARM, so that isn’t a big loss. Most bugs that may arise from this decision would be bugs in the Go cross-compiler, which is unlikely.
   - Distribute the stubs with the npm package to avoid issues like: https://github.com/leafac/caxa/issues/26, https://github.com/leafac/caxa/pull/28, https://github.com/leafac/caxa/issues/31, and https://github.com/leafac/caxa/pull/32.
+  - Check the stubs in version control, to simplify distribution and the workflow of people who want to help in the JavaScript part of caxa and who may not want to setup Go.
 - Added the `--stub` advanced option to specify a custom stub.
 - Added documentation on how to emulate an `--include` option, and why that’s probably a bad idea.
-- TODO: Added the `--initial-message` advanced option to print a message when uncompressing.
-- TODO: Added the `--progress` advanced option to print a progress bar when uncompressing.
+- Added the `--uncompression-message` advanced option to print a message when uncompressing.
 - Fixed the `--exclude` advanced option in Windows.
 
 #### v2.0.0

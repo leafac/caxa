@@ -128,8 +128,10 @@ export default async function caxa({
       bash`
         #!/usr/bin/env sh
         export CAXA_TEMPORARY_DIRECTORY="$(dirname $(mktemp))/caxa"
-        for (( CAXA_EXTRACTION_ATTEMPT=0; ; CAXA_EXTRACTION_ATTEMPT++ ))
+        export CAXA_EXTRACTION_ATTEMPT=-1
+        while true
         do
+          export CAXA_EXTRACTION_ATTEMPT=$(( CAXA_EXTRACTION_ATTEMPT + 1 ))
           export CAXA_LOCK="$CAXA_TEMPORARY_DIRECTORY/locks/${identifier}/$CAXA_EXTRACTION_ATTEMPT"
           export CAXA_APPLICATION_DIRECTORY="$CAXA_TEMPORARY_DIRECTORY/applications/${identifier}/$CAXA_EXTRACTION_ATTEMPT"
           if [ -d "$CAXA_APPLICATION_DIRECTORY" ] 
