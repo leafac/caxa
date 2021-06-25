@@ -53,8 +53,8 @@ $ npm install --save-dev caxa
 - Install any dependencies with `npm install` or `npm ci`.
 - Build. For example, compile TypeScript with `tsc`, bundle with webpack, and whatever else you need to get the project ready to start. Typically this is the kind of thing that goes into an [npm `prepare` script](https://docs.npmjs.com/cli/v7/using-npm/scripts#prepare-and-prepublish), so the `npm ci` from the previous point may already have taken care of this.
 - If there are files that shouldn’t be in the package, remove them from the directory. For example, you may wish to remove the `.git` directory.
-- You don’t need to `npm prune --production` and `npm dedupe`, because caxa will do that for you from within the build directory. (Otherwise, if you tried to `npm prune --production` you’d uninstall caxa, which should probably be in `devDependencies`.)
-- It’s recommended that you run caxa on a Continuous Integration server. (GitHub Actions, for example, does a shallow fetch of the repository, so removing the `.git` directory becomes unnecessary.)
+- You don’t need to `npm dedupe --production`, because caxa will do that for you from within the build directory. (Otherwise, if you tried to `npm dedupe --production` you’d uninstall caxa, which should probably be in `devDependencies`.)
+- It’s recommended that you run caxa on a Continuous Integration server. (GitHub Actions, for example, does a shallow fetch of the repository, so removing the `.git` directory becomes negligible—but you can always do that with the `--exclude` advanced option.)
 
 #### Call caxa from the Command Line
 
@@ -65,28 +65,33 @@ Usage: caxa [options] <command...>
 Package Node.js applications into executable binaries.
 
 Arguments:
-  command                          The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute. The
-                                   ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at
-                                   ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument.
+  command                                The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute.
+                                         The ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at
+                                         ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument.
 
 Options:
-  -V, --version                    output the version number
-  -i, --input <input>              The input directory to package.
-  -o, --output <output>            The path where the executable will be produced. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS
-                                   Application Bundle.
-  -f, --force                      [Advanced] Overwrite output if it exists. (default: true)
+  -V, --version                          output the version number
+  -i, --input <input>                    The input directory to package.
+  -o, --output <output>                  The path where the executable will be produced. On Windows must end in ‘.exe’. In macOS may end in ‘.app’ to generate a macOS
+                                         Application Bundle. In macOS and Linux, may end in ‘.sh’ to use the Shell Stub, which takes less space, but depends on some
+                                         tools being installed on the end-user machine, for example, ‘tar’, ‘tail’, and so forth.
+  -f, --force                            [Advanced] Overwrite output if it exists. (default: true)
   -F, --no-force
-  -e, --exclude <path...>          [Advanced] Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match will
-                                   be excluded.
-  -d, --dedupe                     [Advanced] Run ‘npm dedupe --production’ on the build directory. (default: true)
+  -e, --exclude <path...>                [Advanced] Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match
+                                         will be excluded. [Super-Advanced, Please don’t use] If you wish to emulate ‘--include’, you may use ‘--exclude "*" ".*"
+                                         "!path-to-include" ...’. The problem with ‘--include’ is that if you change your project structure but forget to change the caxa
+                                         invocation, then things will subtly fail only in the packaged version.
+  -d, --dedupe                           [Advanced] Run ‘npm dedupe --production’ on the build directory. (default: true)
   -D, --no-dedupe
-  -p, --prepare-command <command>  [Advanced] Command to run on the build directory while packaging.
-  -n, --include-node               [Advanced] Copy the Node.js executable to ‘{{caxa}}/node_modules/.bin/node’. (default: true)
+  -p, --prepare-command <command>        [Advanced] Command to run on the build directory while packaging.
+  -n, --include-node                     [Advanced] Copy the Node.js executable to ‘{{caxa}}/node_modules/.bin/node’. (default: true)
   -N, --no-include-node
-  -b, --remove-build-directory     [Advanced] Remove the build directory after the build. (default: true)
+  -s, --stub <path>                      [Advanced] Path to the stub.
+  --identifier <identifier>              [Advanced] Build identifier, which is the path in which the application will be unpacked.
+  -b, --remove-build-directory           [Advanced] Remove the build directory after the build. (default: true)
   -B, --no-remove-build-directory
-  --identifier <identifier>        [Advanced] Build identifier, which is the path in which the application will be unpacked.
-  -h, --help                       display help for command
+  -m, --uncompression-message <message>  [Advanced] A message to show when uncompressing, for example, ‘This may take a while to run the first time, please wait...’.
+  -h, --help                             display help for command
 
 Examples:
 
@@ -98,6 +103,9 @@ Examples:
 
   macOS (Application Bundle):
   $ caxa --input "examples/echo-command-line-parameters" --output "Echo Command Line Parameters.app" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
+
+  macOS/Linux (Shell Stub):
+  $ caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters.sh" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.js" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 ```
 
 Here’s [a real-world example of using caxa](https://github.com/courselore/courselore/blob/c0b541d63fc656986ebeab4af3f3dc9bc2909972/.github/workflows/main.yml). This example includes packaging for Windows, macOS, and Linux; distributing tags with GitHub Releases Assets; distributing Insiders Builds for every push with GitHub Actions Artifacts; and deploying a binary to a server with `rsync` (and publishing an npm package as well, but that’s beyond the scope of caxa).
@@ -235,7 +243,7 @@ This is a program written in Go that:
    2. Extracts it.
 4. Runs whatever command it’s told in the footer.
 
-You may find the source code for the stub in `src/stub.go`. You may build the stub with `npm run build:stub`. You will need a Go compiler, but the stub has no dependencies beyond the Go standard library, so there’s no need to setup Go modules or configure a `$GOPATH`. There are pre-compiled stubs for the major platforms that are built using GitHub Actions and are available from GitHub Releases. The npm package includes a `checksums.txt` file that you may check against the log of the GitHub Actions run.
+You may find the source code for the stub in `stubs/stub.go`. You may build the stub with `npm run build:stubs`. You will need a Go compiler, but the stub has no dependencies beyond the Go standard library, so there’s no need to setup Go modules or configure a `$GOPATH`. There are pre-compiled stubs for the major platforms in the npm package. If you wish to verify that the stubs really were compiled from `stubs/stub.go`, you may recompile it yourself, because the Go compiler appears to be deterministic and always produce the same binaries given the same source (at least that’s what happened in my tests).
 
 This is beautiful in a way: We’re using Go’s ability to produce binaries to bootstrap Node.js’s ability to produce binaries.
 
@@ -288,6 +296,10 @@ If you still insist on cross-compiling or compiling for different versions of No
 An macOS Application Bundle is just a folder with a particular structure and an executable at a particular place. When creating a macOS Application Bundle caxa doesn’t build a self-extracting archive, instead it just copies the application to the right place and creates an executable bash script to start the process.
 
 The macOS Application Bundle may be run by simply double-clicking on it from Finder. It opens a Terminal.app window with your application. If you’re running an application that wasn’t built on your machine (which is most likely the case for your users, who probably downloaded the application from the internet), then the first time you run it macOS will probably complain about the lack of a signature. The solution is to go to **System Preferences > Security & Privacy > General** and click on **Allow**. You must instruct your users on how to do this.
+
+#### How the Shell Stub (`.sh`) Works
+
+It’s equivalent to the Go stub, except that it is smaller, because it’s just a dozen lines of Bash, but it depends on some things being installed on the end-user machine, for example, `tar`, `tail`, and so forth.
 
 ### Features to Consider Implementing in the Future
 
@@ -374,7 +386,7 @@ A similar idea to caxa from our friends in Elixir community.
 
 #### References on Self-Extracting Archives
 
-Creating a self-extracting archive with a bash script for the stub (only works on macOS/Linux, and depends on things like `tar` being available—which they probably are):
+Creating a self-extracting archive with a bash script for the stub (only works on macOS/Linux, and depends on things like `tar` being available—which they probably are) (this is the inspiration for the Shell Stub):
 
 - <https://peter-west.uk/blog/2019/making-node-script-binaries.html>: This is specific to Node.js applications. It’s similar in spirit to nar and bashpack.
 - <https://github.com/megastep/makeself>
@@ -526,8 +538,9 @@ As you see from this long README, despite being simple in spirit, caxa is the re
 - Added a new stub strategy: Shell Stub. It’s a simple Bash script that does the same as the Go stub, except that it takes less space (about 10 lines as opposed to a 2MB Go binary), but it depends on some tools being installed on the end-user machine, for example, `tar`, `tail`, and so forth.
 - Simplified the build/distribution of stubs.
   - Cross-compile the stubs, to simplify the GitHub Actions architecture. We were already cross-compiling for macOS ARM, so that isn’t a big loss. Most bugs that may arise from this decision would be bugs in the Go cross-compiler, which is unlikely.
-  - Distribute the stubs with the npm package to avoid issues like: https://github.com/leafac/caxa/issues/26, https://github.com/leafac/caxa/pull/28, https://github.com/leafac/caxa/issues/31, and https://github.com/leafac/caxa/pull/32.
+  - Distribute the stubs with the npm package to avoid issues like: https://github.com/leafac/caxa/issues/26, https://github.com/leafac/caxa/pull/28, https://github.com/leafac/caxa/issues/31, and https://github.com/leafac/caxa/pull/32. If you wish to verify that the stubs really were compiled from `stubs/stub.go`, you may run `npm run build:stubs`, because the Go compiler appears to be deterministic and always produce the same binaries given the same source (at least that’s what happened in my tests).
   - Check the stubs in version control, to simplify distribution and the workflow of people who want to help in the JavaScript part of caxa and who may not want to setup Go.
+  - Distribute only one version of the stub for Linux ARMv6 & Linux ARMv7. They happened to be the same binary, anyway—it seems that the Go compiler doesn’t differentiate between these architectures.
 - Added the `--stub` advanced option to specify a custom stub.
 - Added documentation on how to emulate an `--include` option, and why that’s probably a bad idea.
 - Added the `--uncompression-message` advanced option to print a message when uncompressing.

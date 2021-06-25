@@ -208,7 +208,7 @@ if (require.main === module)
       .requiredOption("-i, --input <input>", "The input directory to package.")
       .requiredOption(
         "-o, --output <output>",
-        "The path where the executable will be produced. On Windows must end in ‘.exe’. On macOS may end in ‘.app’ to generate a macOS Application Bundle."
+        "The path where the executable will be produced. On Windows must end in ‘.exe’. In macOS may end in ‘.app’ to generate a macOS Application Bundle. In macOS and Linux, may end in ‘.sh’ to use the Shell Stub, which takes less space, but depends on some tools being installed on the end-user machine, for example, ‘tar’, ‘tail’, and so forth."
       )
       .option("-f, --force", "[Advanced] Overwrite output if it exists.", true)
       .option("-F, --no-force")
