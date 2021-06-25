@@ -156,8 +156,8 @@ export default async function caxa({
         exec ${command
           .map(
             (commandPart) =>
-              `"${commandPart.replaceAll(
-                "{{caxa}}",
+              `"${commandPart.replace(
+                /\{\{caxa\}\}/g,
                 `"$CAXA_APPLICATION_DIRECTORY"`
               )}"`
           )
