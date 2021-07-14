@@ -159,7 +159,7 @@ export default async function caxa({
           .map(
             (commandPart) =>
               `"${commandPart.replace(
-                /\{\{caxa\}\}/g,
+                /\{\{\s*caxa\s*\}\}/g,
                 `"$CAXA_APPLICATION_DIRECTORY"`
               )}"`
           )
