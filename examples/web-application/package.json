@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "ts-node-dev --poll src",
+    "start": "ts-node-dev --poll source",
     "prepare": "tsc"
   },
   "dependencies": {

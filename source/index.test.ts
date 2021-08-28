@@ -18,7 +18,7 @@ test("echo-command-line-parameters", async () => {
     `echo-command-line-parameters${process.platform === "win32" ? ".exe" : ""}`
   );
   await execa("ts-node", [
-    "src/index.ts",
+    "source/index.ts",
     "--input",
     "examples/echo-command-line-parameters",
     "--output",
@@ -54,7 +54,7 @@ if (process.platform === "darwin")
       "Echo Command Line Parameters.app"
     );
     await execa("ts-node", [
-      "src/index.ts",
+      "source/index.ts",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -87,7 +87,7 @@ if (process.platform !== "win32")
   test("echo-command-line-parameters.sh", async () => {
     const output = path.join(testsDirectory, "echo-command-line-parameters.sh");
     await execa("ts-node", [
-      "src/index.ts",
+      "source/index.ts",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -123,7 +123,7 @@ test("native-modules", async () => {
   );
   await execa("npm", ["ci"], { cwd: "examples/native-modules" });
   await execa("ts-node", [
-    "src/index.ts",
+    "source/index.ts",
     "--input",
     "examples/native-modules",
     "--output",
@@ -146,7 +146,7 @@ test("false", async () => {
     `false${process.platform === "win32" ? ".exe" : ""}`
   );
   await execa("ts-node", [
-    "src/index.ts",
+    "source/index.ts",
     "--input",
     "examples/false",
     "--output",
@@ -168,7 +168,7 @@ test("--force", async () => {
     }`
   );
   await execa("ts-node", [
-    "src/index.ts",
+    "source/index.ts",
     "--input",
     "examples/echo-command-line-parameters",
     "--output",
@@ -181,7 +181,7 @@ test("--force", async () => {
     "--an-option-thats-part-of-the-command",
   ]);
   await execa("ts-node", [
-    "src/index.ts",
+    "source/index.ts",
     "--input",
     "examples/echo-command-line-parameters",
     "--output",
@@ -195,7 +195,7 @@ test("--force", async () => {
   ]);
   await expect(
     execa("ts-node", [
-      "src/index.ts",
+      "source/index.ts",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -219,7 +219,7 @@ test("--exclude", async () => {
     }`
   );
   await execa("ts-node", [
-    "src/index.ts",
+    "source/index.ts",
     "--input",
     "examples/echo-command-line-parameters",
     "--output",
@@ -244,7 +244,7 @@ test("--dedupe", async () => {
     }`
   );
   await execa("ts-node", [
-    "src/index.ts",
+    "source/index.ts",
     "--input",
     "examples/echo-command-line-parameters",
     "--output",
@@ -268,7 +268,7 @@ test("--prepare-command", async () => {
     }`
   );
   await execa("ts-node", [
-    "src/index.ts",
+    "source/index.ts",
     "--input",
     "examples/echo-command-line-parameters",
     "--output",
@@ -293,7 +293,7 @@ test("--include-node", async () => {
     }`
   );
   await execa("ts-node", [
-    "src/index.ts",
+    "source/index.ts",
     "--input",
     "examples/echo-command-line-parameters",
     "--output",
@@ -318,7 +318,7 @@ test("--stub", async () => {
   );
   await expect(
     execa("ts-node", [
-      "src/index.ts",
+      "source/index.ts",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -343,7 +343,7 @@ test("--identifier", async () => {
     }`
   );
   await execa("ts-node", [
-    "src/index.ts",
+    "source/index.ts",
     "--input",
     "examples/echo-command-line-parameters",
     "--output",
@@ -368,7 +368,7 @@ test("--remove-build-directory", async () => {
     }`
   );
   await execa("ts-node", [
-    "src/index.ts",
+    "source/index.ts",
     "--input",
     "examples/echo-command-line-parameters",
     "--output",
@@ -394,7 +394,7 @@ test("--uncompression-message", async () => {
     }`
   );
   await execa("ts-node", [
-    "src/index.ts",
+    "source/index.ts",
     "--input",
     "examples/echo-command-line-parameters",
     "--output",
