@@ -17,6 +17,12 @@
   "license": "MIT",
   "bugs": "https://github.com/leafac/caxa/issues",
   "homepage": "https://github.com/leafac/caxa#readme",
+  "funding": [
+    "https://patreon.com/leafac",
+    "https://paypal.me/LeandroFacchinettiEU",
+    "https://github.com/sponsors/leafac",
+    "https://btc.com/34KJBgtaFYMtDqpSgMayw9qiKWg2GQXA9M"
+  ],
   "scripts": {
     "test": "prettier --check \"source/**/*\" --end-of-line auto && jest",
     "prepare": "tsc",
