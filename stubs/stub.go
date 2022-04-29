@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/user"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -46,10 +47,18 @@ func main() {
 		log.Fatalf("caxa stub: Failed to parse JSON in footer: %v", err)
 	}
 
+	// Source: https://golangbyexample.com/get-current-username-golang/
+	user, err := user.Current()
+	if err != nil {
+		log.Fatalf("caxa stub: Failed to get OS username, error: %v", err)
+	}
+
+	username := user.Username
+	
 	var applicationDirectory string
 	for extractionAttempt := 0; true; extractionAttempt++ {
-		lock := path.Join(os.TempDir(), "caxa/locks", footer.Identifier, strconv.Itoa(extractionAttempt))
-		applicationDirectory = path.Join(os.TempDir(), "caxa/applications", footer.Identifier, strconv.Itoa(extractionAttempt))
+		lock := path.Join(os.TempDir(), "caxa", username, "locks", footer.Identifier, strconv.Itoa(extractionAttempt))
+		applicationDirectory = path.Join(os.TempDir(), "caxa", username, "applications", footer.Identifier, strconv.Itoa(extractionAttempt))
 		applicationDirectoryFileInfo, err := os.Stat(applicationDirectory)
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			log.Fatalf("caxa stub: Failed to find information about the application directory: %v", err)
@@ -104,7 +113,7 @@ func main() {
 				log.Fatalf("caxa stub: Failed to find archive (did you append the separator when building the stub?): %v", err)
 			}
 			archive := executable[archiveIndex+len(archiveSeparator) : footerIndex]
-
+			
 			if err := Untar(bytes.NewReader(archive), applicationDirectory); err != nil {
 				log.Fatalf("caxa stub: Failed to uncompress archive: %v", err)
 			}

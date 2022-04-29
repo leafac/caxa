@@ -69,12 +69,19 @@ export default async function caxa({
   if (process.platform === "win32" && !output.endsWith(".exe"))
     throw new Error("An Windows executable must end in ‘.exe’.");
 
+  const caxaDirectory = path.join(os.tmpdir(), "caxa");
+  const userDirectory = path.join(caxaDirectory, os.userInfo().username);
   const buildDirectory = path.join(
-    os.tmpdir(),
-    "caxa/builds",
+    userDirectory,
+    `builds`,
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
   await fs.copy(input, buildDirectory, { filter });
+  // For multi user, we need all users to write his own directory inside caxa,
+  // so 777 for caxa and scoped permissions for user directory, see #53
+  await fs.chmod(caxaDirectory, "777");
+  await fs.chmod(userDirectory, "700");
+
   if (dedupe)
     await execa("npm", ["dedupe", "--production"], { cwd: buildDirectory });
   await prepare(buildDirectory);
@@ -127,7 +134,7 @@ export default async function caxa({
     let stub =
       bash`
         #!/usr/bin/env sh
-        export CAXA_TEMPORARY_DIRECTORY="$(dirname $(mktemp))/caxa"
+        export CAXA_TEMPORARY_DIRECTORY="$(dirname $(mktemp))/caxa/$(whoami)"
         export CAXA_EXTRACTION_ATTEMPT=-1
         while true
         do

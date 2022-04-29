@@ -7,9 +7,10 @@ import execa from "execa";
 jest.setTimeout(300_000);
 
 const caxaDirectory = path.join(os.tmpdir(), "caxa");
-const testsDirectory = path.join(caxaDirectory, "tests");
+const userDirectory = path.join(caxaDirectory, os.userInfo().username);
+const testsDirectory = path.join(userDirectory, "tests");
 beforeAll(async () => {
-  await fs.remove(caxaDirectory);
+  await fs.remove(userDirectory);
 });
 
 test("echo-command-line-parameters", async () => {
@@ -353,7 +354,9 @@ test("--identifier", async () => {
     "--",
     process.execPath,
     "--print",
-    'JSON.stringify(require("fs").existsSync(require("path").join(require("os").tmpdir(), "caxa/applications/identifier")))',
+    `JSON.stringify(require("fs").existsSync(require("path").join(require("os").tmpdir(), "caxa/${
+      os.userInfo().username
+    }/applications/identifier")))`,
   ]);
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
     `"true"`
