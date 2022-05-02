@@ -53,8 +53,10 @@ func main() {
 		log.Fatalf("caxa stub: Failed to get OS username, error: %v", err)
 	}
 
-	username := user.Username
-	
+	// Replace \ with _ so in windows when it returns the domain workgroup it gets converted to DOMAIN_username
+	// Ref: https://github.com/leafac/caxa/issues/53#issuecomment-1113285692
+	username := strings.Replace(user.Username, "\\", "_", 1)
+
 	var applicationDirectory string
 	for extractionAttempt := 0; true; extractionAttempt++ {
 		lock := path.Join(os.TempDir(), "caxa", username, "locks", footer.Identifier, strconv.Itoa(extractionAttempt))

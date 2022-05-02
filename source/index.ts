@@ -69,8 +69,18 @@ export default async function caxa({
   if (process.platform === "win32" && !output.endsWith(".exe"))
     throw new Error("An Windows executable must end in ‘.exe’.");
 
+  // Windows doesn't return DOMAIN\username with os.userInfo().username,
+  // but the go implementation does, we have to emulate that with env vars
+  // also instead of backslash we use an underscore so DOMAIN\username
+  // Its not converted to a path slug
+  // Ref: https://github.com/leafac/caxa/issues/53#issuecomment-1113285692
+  const username =
+    process.platform === "win32"
+      ? `${process.env.USERDOMAIN}_${process.env.USERNAME}`
+      : os.userInfo().username;
+
   const caxaDirectory = path.join(os.tmpdir(), "caxa");
-  const userDirectory = path.join(caxaDirectory, os.userInfo().username);
+  const userDirectory = path.join(caxaDirectory, username);
   const buildDirectory = path.join(
     userDirectory,
     `builds`,
