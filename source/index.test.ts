@@ -6,8 +6,18 @@ import execa from "execa";
 
 jest.setTimeout(300_000);
 
+// Windows doesn't return DOMAIN\username with os.userInfo().username,
+// but the go implementation does, we have to emulate that with env vars
+// also instead of backslash we use an underscore so DOMAIN\username
+// Its not converted to a path slug
+// Ref: https://github.com/leafac/caxa/issues/53#issuecomment-1113285692
+const username =
+  process.platform === "win32"
+    ? `${process.env.USERDOMAIN}_${process.env.USERNAME}`
+    : os.userInfo().username;
+
 const caxaDirectory = path.join(os.tmpdir(), "caxa");
-const userDirectory = path.join(caxaDirectory, os.userInfo().username);
+const userDirectory = path.join(caxaDirectory, username);
 const testsDirectory = path.join(userDirectory, "tests");
 beforeAll(async () => {
   await fs.remove(userDirectory);
@@ -139,6 +149,9 @@ test("native-modules", async () => {
           }
           sharp: 48"
       `);
+  // Delete node_modules for multi user tests
+  // or else next user will fail with permission denied for npm ci
+  await fs.remove(path.resolve("./examples/native-modules/node_modules"));
 });
 
 test("false", async () => {
@@ -354,9 +367,7 @@ test("--identifier", async () => {
     "--",
     process.execPath,
     "--print",
-    `JSON.stringify(require("fs").existsSync(require("path").join(require("os").tmpdir(), "caxa/${
-      os.userInfo().username
-    }/applications/identifier")))`,
+    `JSON.stringify(require("fs").existsSync(require("path").join(require("os").tmpdir(), "caxa/${username}/applications/identifier")))`,
   ]);
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
     `"true"`
