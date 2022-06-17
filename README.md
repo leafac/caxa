@@ -527,6 +527,16 @@ It’d have been nice to use `syscall.Exec()`, which replaces the currently runn
 
 caxa is a misspelling of **caixa**, which is Portuguese for **box**. I find it amusing to say that you’re putting an application in the **caxa** 📦 🙄
 
+### Multi user support in linux
+
+MacOS & Windows tmp directory resolve to a private path, but in linux resolves to `/tmp`, a shared directory between all users.
+
+To prevent permission denied errors in linux, caxa will create `/tmp/caxa` with `777` permissions, and inside a folder with the username calling caxa with permissions scoped for that user (`700`). In MacOS & Windows the users directory will also get created but they are not really needed as the `$TMPDIR` is already scopped to the user.
+
+[There where some tests to test it out](d6ff813c086b57344c45d04762a4d9d70fbb8786), but they may become too brittle as [its hard to test all cases in multi user tests](https://github.com/leafac/caxa/issues/53#issuecomment-1135469867), thats why they where removed and this feature is labeled as **“here be dragons”**.
+
+If you find out any problems with this feature please open an issue so we can keep track of it.
+
 ### Conclusion
 
 As you see from this long README, despite being simple in spirit, caxa is the result of a lot of research and hard work. Simplicity is **hard**. So [support my work](#support).
