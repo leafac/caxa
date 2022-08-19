@@ -190,7 +190,7 @@ As far as I can understand, the root of the problem with creating binaries for N
 
 1. You must have a working C/C++ build system to install these libraries (C/C++ compiler, `make`, Python, and so forth). On Windows, you must install [windows-build-tools](https://npm.im/windows-build-tools). On macOS, you must install the Command-Line Tools (CLT) with `xcode-select --install`. On Linux, it depends on the distribution, but on Ubuntu `sudo apt install build-essential` is enough.
 
-2. The installation of native modules isn’t cross-platform. Unlike JavaScript dependencies, which you may copy from an operating system to another, native modules produce compiled C/C++ code that’s specific to the operating system on which the dependency is installed. This compiled code appears in your `node_modules` directory in the form of `.node` files.
+2. The installation of native modules isn’t cross-platform. Unlike JavaScript dependencies, which you may copy from an [operating system](https://www.scaler.com/topics/operating-system/) to another, native modules produce compiled C/C++ code that’s specific to the operating system on which the dependency is installed. This compiled code appears in your `node_modules` directory in the form of `.node` files.
 
 3. As far as I understand, **Node.js insists on loading native modules from files in the disk**. Other Node.js packaging solutions get around this limitation in one of two ways: They either patch Node.js to trick it into loading native modules differently; or they put `.node` files somewhere before starting your program.
 
