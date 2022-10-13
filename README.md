@@ -1,3 +1,33 @@
+<!--
+
+TODO: Use `exec` on Go stub on macOS & Linux.
+
+- [ ] Security concern: Only let the user who extracted the binary read it
+- [ ] Automatic updates
+- [ ] Ask for mention in README:
+    - [ ] https://github.com/nexe/nexe
+    - [ ] https://github.com/mongodb-js/boxednode
+    - [ ] https://github.com/pmq20/node-packer
+    - [ ] https://github.com/criblio/js2bin
+    - [ ] https://github.com/h2non/nar
+- [ ] Compile caxa with caxa (it becomes a tool for creating general self-extracting archives)
+- [ ] What does ncc do with native modules?
+- [ ] AppImage on linux?
+
+Mention that ESM works (or anything you can throw at a command-line `node` invocation)
+
+
+Oh, interesting. It seems like you and I understand the point of `--exclude` differently:
+
+**You:** `--exclude` means “don’t include this file in the binary.”
+**I:** `--exclude` means “don’t copy this file over into the temporary directory where the application will be prepared.”
+
+Your `--exclude` comes late in the chain of processes that need to happen to make an executable. Mine comes early.
+
+That’s a miscommunication that I’ll address in the documentation.
+
+-->
+
 <h1 align="center">caxa</h1>
 <h3 align="center">📦 Package Node.js applications into executable binaries 📦</h3>
 <p align="center">
