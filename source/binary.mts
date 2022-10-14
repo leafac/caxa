@@ -63,7 +63,6 @@ await commander.program
     "after",
     `
 Examples:
-
   Windows:
   > caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters.exe" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.mjs" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 
