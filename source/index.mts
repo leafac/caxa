@@ -58,11 +58,11 @@ export default async function caxa({
   uncompressionMessage?: string;
 }): Promise<void> {
   if (!(await fs.pathExists(input)) || !(await fs.lstat(input)).isDirectory())
-    throw new Error(`The input isn’t a directory: ‘${input}’.`);
+    throw new Error(`Input isn’t a directory: ‘${input}’.`);
   if ((await fs.pathExists(output)) && !force)
-    throw new Error(`The output already exists: ‘${output}’.`);
+    throw new Error(`Output already exists: ‘${output}’.`);
   if (process.platform === "win32" && !output.endsWith(".exe"))
-    throw new Error("A Windows executable must end in ‘.exe’.");
+    throw new Error("Windows executable must end in ‘.exe’.");
 
   const buildDirectory = path.join(
     os.tmpdir(),
@@ -103,7 +103,7 @@ export default async function caxa({
       bash`
         #!/usr/bin/env sh
         open "$(dirname "$0")/../Resources/${name}"
-      `,
+      ` + "\n",
       { mode: 0o755 }
     );
     await fs.writeFile(
@@ -118,7 +118,8 @@ export default async function caxa({
                 `$(dirname "$0")/application`
               )}"`
           )
-          .join(" ")}`,
+          .join(" ")}
+      ` + "\n",
       { mode: 0o755 }
     );
   } else if (output.endsWith(".sh")) {
@@ -193,7 +194,9 @@ export default async function caxa({
     archive.pipe(archiveStream);
     archive.directory(buildDirectory, false);
     await archive.finalize();
-    // FIXME: Use ‘stream/promises’ when Node.js 16 lands, because then an LTS version will have the feature: await stream.finished(archiveStream);
+    // FIXME: When dropping support for Node.js 14:
+    // import stream from "node:stream/promises";
+    // await stream.finished(archiveStream);
     await new Promise((resolve, reject) => {
       archiveStream.on("finish", resolve);
       archiveStream.on("error", reject);
