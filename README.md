@@ -1,5 +1,7 @@
 <!--
 
+Document JavaScript API
+
 TODO: Use `exec` on Go stub on macOS & Linux.
 
 - [ ] Security concern: Only let the user who extracted the binary read it

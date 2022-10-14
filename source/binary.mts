@@ -18,42 +18,42 @@ await commander.program
     "-o, --output <output>",
     "The path where the executable will be produced. On Windows, must end in ‘.exe’. In macOS, may end in ‘.app’ to generate a macOS Application Bundle. In macOS and Linux, may end in ‘.sh’ to use the Shell Stub, which takes less space, but depends on some tools being installed on the end-user machine, for example, ‘tar’, ‘tail’, and so forth."
   )
-  .option("-f, --force", "[Advanced] Overwrite output if it exists.", true)
+  .option("-f, --force", "[ADVANCED] Overwrite output if it exists.", true)
   .option("-F, --no-force")
   .option(
     "-e, --exclude <path...>",
-    `[Advanced] Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match will be excluded. [Super-Advanced, Please don’t use] If you wish to emulate ‘--include’, you may use ‘--exclude "*" ".*" "!path-to-include" ...’. The problem with ‘--include’ is that if you change your project structure but forget to change the caxa invocation, then things will subtly fail only in the packaged version.`
+    `[ADVANCED] Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match will be excluded. [Super-Advanced, Please don’t use] If you wish to emulate ‘--include’, you may use ‘--exclude "*" ".*" "!path-to-include" ...’. The problem with ‘--include’ is that if you change your project structure but forget to change the caxa invocation, then things will subtly fail only in the packaged version.`
   )
   .option(
     "-d, --dedupe",
-    "[Advanced] Run ‘npm dedupe --production’ on the build directory.",
+    "[ADVANCED] Run ‘npm dedupe --production’ on the build directory.",
     true
   )
   .option("-D, --no-dedupe")
   .option(
     "-p, --prepare-command <command>",
-    "[Advanced] Command to run on the build directory while packaging."
+    "[ADVANCED] Command to run on the build directory while packaging."
   )
   .option(
     "-n, --include-node",
-    "[Advanced] Copy the Node.js executable to ‘{{caxa}}/node_modules/.bin/node’.",
+    "[ADVANCED] Copy the Node.js executable to ‘{{caxa}}/node_modules/.bin/node’.",
     true
   )
   .option("-N, --no-include-node")
-  .option("-s, --stub <path>", "[Advanced] Path to the stub.")
+  .option("-s, --stub <path>", "[ADVANCED] Path to the stub.")
   .option(
     "--identifier <identifier>",
-    "[Advanced] Build identifier, which is the path in which the application will be unpacked."
+    "[ADVANCED] Build identifier, which is the path in which the application will be unpacked."
   )
   .option(
     "-b, --remove-build-directory",
-    "[Advanced] Remove the build directory after the build.",
+    "[ADVANCED] Remove the build directory after the build.",
     true
   )
   .option("-B, --no-remove-build-directory")
   .option(
     "-m, --uncompression-message <message>",
-    "[Advanced] A message to show when uncompressing, for example, ‘This may take a while to run the first time, please wait...’."
+    "[ADVANCED] A message to show when uncompressing, for example, ‘This may take a while to run the first time, please wait...’."
   )
   .argument(
     "<command...>",
