@@ -2,31 +2,29 @@
   "name": "caxa",
   "version": "2.1.0",
   "description": "Package Node.js applications into executable binaries",
-  "main": "distribution/index.js",
-  "bin": {
-    "caxa": "distribution/index.js"
-  },
-  "types": "distribution/index.d.ts",
+  "author": "Leandro Facchinetti <caxa@leafac.com> (https://leafac.com)",
+  "homepage": "https://github.com/leafac/caxa",
+  "bugs": "https://github.com/leafac/caxa/issues",
   "repository": "leafac/caxa",
+  "license": "MIT",
   "keywords": [
     "packing",
     "deployment",
     "binary"
   ],
-  "author": "Leandro Facchinetti <caxa@leafac.com> (https://leafac.com)",
-  "license": "MIT",
-  "bugs": "https://github.com/leafac/caxa/issues",
-  "homepage": "https://github.com/leafac/caxa",
   "funding": [
     "https://patreon.com/leafac",
     "https://paypal.me/LeandroFacchinettiEU",
     "https://github.com/sponsors/leafac",
     "https://btc.com/34KJBgtaFYMtDqpSgMayw9qiKWg2GQXA9M"
   ],
+  "exports": "./distribution/index.mjs",
+  "types": "./distribution/index.d.mts",
+  "bin": "./distribution/binary.mjs",
   "scripts": {
-    "test": "prettier --check \"source/**/*\" --end-of-line auto && jest",
     "prepare": "tsc",
-    "build:stubs": "shx rm -f stubs/stub--win32--x64 && cross-env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o stubs/stub--win32--x64 stubs/stub.go && shx echo >> stubs/stub--win32--x64 && shx echo CAXACAXACAXA >> stubs/stub--win32--x64 && shx rm -f stubs/stub--darwin--x64 && cross-env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o stubs/stub--darwin--x64 stubs/stub.go && shx echo >> stubs/stub--darwin--x64 && shx echo CAXACAXACAXA >> stubs/stub--darwin--x64 && shx rm -f stubs/stub--darwin--arm64 && cross-env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o stubs/stub--darwin--arm64 stubs/stub.go && shx echo >> stubs/stub--darwin--arm64 && shx echo CAXACAXACAXA >> stubs/stub--darwin--arm64 && shx rm -f stubs/stub--linux--x64 && cross-env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o stubs/stub--linux--x64 stubs/stub.go && shx echo >> stubs/stub--linux--x64 && shx echo CAXACAXACAXA >> stubs/stub--linux--x64 && shx rm -f stubs/stub--linux--arm64 && cross-env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o stubs/stub--linux--arm64 stubs/stub.go && shx echo >> stubs/stub--linux--arm64 && shx echo CAXACAXACAXA >> stubs/stub--linux--arm64 && shx rm -f stubs/stub--linux--arm && cross-env CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -o stubs/stub--linux--arm stubs/stub.go && shx echo >> stubs/stub--linux--arm && shx echo CAXACAXACAXA >> stubs/stub--linux--arm"
+    "prepare:stubs": "shx rm -f stubs/stub--win32--x64 && cross-env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o stubs/stub--win32--x64 stubs/stub.go && shx echo >> stubs/stub--win32--x64 && shx echo CAXACAXACAXA >> stubs/stub--win32--x64 && shx rm -f stubs/stub--darwin--x64 && cross-env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o stubs/stub--darwin--x64 stubs/stub.go && shx echo >> stubs/stub--darwin--x64 && shx echo CAXACAXACAXA >> stubs/stub--darwin--x64 && shx rm -f stubs/stub--darwin--arm64 && cross-env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o stubs/stub--darwin--arm64 stubs/stub.go && shx echo >> stubs/stub--darwin--arm64 && shx echo CAXACAXACAXA >> stubs/stub--darwin--arm64 && shx rm -f stubs/stub--linux--x64 && cross-env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o stubs/stub--linux--x64 stubs/stub.go && shx echo >> stubs/stub--linux--x64 && shx echo CAXACAXACAXA >> stubs/stub--linux--x64 && shx rm -f stubs/stub--linux--arm64 && cross-env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o stubs/stub--linux--arm64 stubs/stub.go && shx echo >> stubs/stub--linux--arm64 && shx echo CAXACAXACAXA >> stubs/stub--linux--arm64 && shx rm -f stubs/stub--linux--arm && cross-env CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -o stubs/stub--linux--arm stubs/stub.go && shx echo >> stubs/stub--linux--arm && shx echo CAXACAXACAXA >> stubs/stub--linux--arm",
+    "test": "prettier --check \"source/**/*.mts\" --end-of-line auto && npm run prepare && npm run prepare:stubs && env TEST=caxa node ./distribution/index.mjs"
   },
   "dependencies": {
     "archiver": "^5.2.0",
@@ -41,18 +39,10 @@
     "@types/archiver": "^5.1.0",
     "@types/dedent": "^0.7.0",
     "@types/fs-extra": "^9.0.7",
-    "@types/jest": "^27.0.1",
     "@types/node": "^14.14.26",
     "cross-env": "^7.0.3",
-    "jest": "^27.1.0",
     "prettier": "^2.2.1",
     "shx": "^0.3.3",
-    "ts-jest": "^27.0.5",
-    "ts-node": "^9.1.1",
     "typescript": "^4.1.5"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "rootDir": "source"
   }
 }
