@@ -5,9 +5,9 @@
 
     "module": "ESNext",
     "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": true,
     "target": "ESNext",
 
     "declaration": true,
@@ -15,6 +15,5 @@
     "sourceMap": true,
 
     "strict": true
-  },
-  "include": ["source/**/*"]
+  }
 }
