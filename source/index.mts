@@ -1,10 +1,11 @@
 import path from "node:path";
+import url from "node:url";
 import os from "node:os";
 import fs from "fs-extra";
-import { execa } from "execa";
+import { execa, execaCommand } from "execa";
 import archiver from "archiver";
 import cryptoRandomString from "crypto-random-string";
-import { globby } from "globby";
+import { globbySync } from "globby";
 import bash from "dedent";
 
 export default async function caxa({
@@ -14,28 +15,28 @@ export default async function caxa({
   force = true,
   exclude = [],
   filter = (() => {
-    const pathsToExclude = globby
-      .sync(exclude, {
-        expandDirectories: false,
-        onlyFiles: false,
-      })
-      .map((pathToExclude: string) => path.join(pathToExclude));
+    const pathsToExclude = globbySync(exclude, {
+      expandDirectories: false,
+      onlyFiles: false,
+    }).map((pathToExclude: string) => path.normalize(pathToExclude));
     return (pathToCopy: string) =>
-      !pathsToExclude.includes(path.join(pathToCopy));
+      !pathsToExclude.includes(path.normalize(pathToCopy));
   })(),
   dedupe = true,
   prepareCommand,
   prepare = async (buildDirectory: string) => {
     if (prepareCommand === undefined) return;
-    await execa.command(prepareCommand, { cwd: buildDirectory, shell: true });
+    await execaCommand(prepareCommand, { cwd: buildDirectory, shell: true });
   },
   includeNode = true,
-  stub = path.join(
-    __dirname,
-    `../stubs/stub--${process.platform}--${process.arch}`
+  stub = url.fileURLToPath(
+    new URL(
+      `../stubs/stub--${process.platform}--${process.arch}`,
+      import.meta.url
+    )
   ),
   identifier = path.join(
-    path.basename(path.basename(path.basename(output, ".app"), ".exe"), ".sh"),
+    path.basename(path.basename(path.basename(output, ".exe"), ".app"), ".sh"),
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   ),
   removeBuildDirectory = true,
@@ -57,13 +58,11 @@ export default async function caxa({
   uncompressionMessage?: string;
 }): Promise<void> {
   if (!(await fs.pathExists(input)) || !(await fs.lstat(input)).isDirectory())
-    throw new Error(
-      `The path to your application isn’t a directory: ‘${input}’.`
-    );
+    throw new Error(`The input isn’t a directory: ‘${input}’.`);
   if ((await fs.pathExists(output)) && !force)
-    throw new Error(`Output already exists: ‘${output}’.`);
+    throw new Error(`The output already exists: ‘${output}’.`);
   if (process.platform === "win32" && !output.endsWith(".exe"))
-    throw new Error("An Windows executable must end in ‘.exe’.");
+    throw new Error("A Windows executable must end in ‘.exe’.");
 
   const buildDirectory = path.join(
     os.tmpdir(),

@@ -13,7 +13,7 @@ await commander.program
   )
   .requiredOption(
     "-o, --output <output>",
-    "[Required] The path where the executable will be produced. On Windows, must end in ‘.exe’. In macOS and Linux, may have no extension to produce regular binary. In macOS, may end in ‘.app’ to generate a macOS Application Bundle. In macOS and Linux, may end in ‘.sh’ to use the Shell Stub, which is a bit smaller, but depends on some tools being installed on the end-user machine, for example, ‘tar’, ‘tail’, and so forth."
+    "[Required] The path where the executable will be produced. On Windows, must end in ‘.exe’. In macOS and Linux, may have no extension to produce regular binary. In macOS and Linux, may end in ‘.sh’ to use the Shell Stub, which is a bit smaller, but depends on some tools being installed on the end-user machine, for example, ‘tar’, ‘tail’, and so forth. In macOS, may end in ‘.app’ to generate a macOS Application Bundle."
   )
   .option("-F, --no-force", "[Advanced] Don’t overwrite output if it exists.")
   .option(
@@ -26,7 +26,7 @@ await commander.program
   )
   .option(
     "-p, --prepare-command <command>",
-    "[Advanced] Command to run on the build directory while packaging."
+    "[Advanced] Command to run on the build directory after ‘npm dedupe --production’, before packaging."
   )
   .option(
     "-N, --no-include-node",
