@@ -13,7 +13,10 @@ await commander.program
     ).version
   )
   .showHelpAfterError()
-  .requiredOption("-i, --input <input>", "[Required] The input directory to package.")
+  .requiredOption(
+    "-i, --input <input>",
+    "[Required] The input directory to package."
+  )
   .requiredOption(
     "-o, --output <output>",
     "[Required] The path where the executable will be produced. On Windows, must end in ‘.exe’. In macOS, may end in ‘.app’ to generate a macOS Application Bundle. In macOS and Linux, may end in ‘.sh’ to use the Shell Stub, which takes less space, but depends on some tools being installed on the end-user machine, for example, ‘tar’, ‘tail’, and so forth."
@@ -69,58 +72,54 @@ Examples:
   $ caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters.sh" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.mjs" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 `
   )
-  .action(async (command, options) => {
-    console.log(command);
-    console.log(options);
-  })
-  // .action(
-  //   async (
-  //     command: string[],
-  //     {
-  //       input,
-  //       output,
-  //       force,
-  //       exclude = [],
-  //       dedupe,
-  //       prepareCommand,
-  //       includeNode,
-  //       stub,
-  //       identifier,
-  //       removeBuildDirectory,
-  //       uncompressionMessage,
-  //     }: {
-  //       input: string;
-  //       output: string;
-  //       force?: boolean;
-  //       exclude?: string[];
-  //       dedupe?: boolean;
-  //       prepareCommand?: string;
-  //       includeNode?: boolean;
-  //       stub?: string;
-  //       identifier?: string;
-  //       removeBuildDirectory?: boolean;
-  //       uncompressionMessage?: string;
-  //     }
-  //   ) => {
-  //     try {
-  //       await caxa({
-  //         input,
-  //         output,
-  //         command,
-  //         force,
-  //         exclude,
-  //         dedupe,
-  //         prepareCommand,
-  //         includeNode,
-  //         stub,
-  //         identifier,
-  //         removeBuildDirectory,
-  //         uncompressionMessage,
-  //       });
-  //     } catch (error: any) {
-  //       console.error(error.message);
-  //       process.exit(1);
-  //     }
-  //   }
-  // )
+  .action(
+    async (
+      command: string[],
+      {
+        input,
+        output,
+        force,
+        exclude = [],
+        dedupe,
+        prepareCommand,
+        includeNode,
+        stub,
+        identifier,
+        removeBuildDirectory,
+        uncompressionMessage,
+      }: {
+        input: string;
+        output: string;
+        force?: boolean;
+        exclude?: string[];
+        dedupe?: boolean;
+        prepareCommand?: string;
+        includeNode?: boolean;
+        stub?: string;
+        identifier?: string;
+        removeBuildDirectory?: boolean;
+        uncompressionMessage?: string;
+      }
+    ) => {
+      try {
+        await caxa({
+          input,
+          output,
+          command,
+          force,
+          exclude,
+          dedupe,
+          prepareCommand,
+          includeNode,
+          stub,
+          identifier,
+          removeBuildDirectory,
+          uncompressionMessage,
+        });
+      } catch (error: any) {
+        console.error(error.message);
+        process.exit(1);
+      }
+    }
+  )
   .parseAsync();
