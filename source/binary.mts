@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import commander from "commander";
-
 import caxa from "./index.mjs";
 
 await commander.program
