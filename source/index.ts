@@ -8,7 +8,7 @@ import execa from "execa";
 import archiver from "archiver";
 import cryptoRandomString from "crypto-random-string";
 import commander from "commander";
-import globby from "globby";
+import {globby} from "globby";
 import bash from "dedent";
 
 export default async function caxa({
@@ -248,10 +248,8 @@ if (require.main === module)
         "[Advanced] A message to show when uncompressing, for example, ‘This may take a while to run the first time, please wait...’."
       )
       .arguments("<command...>")
-      .description("Package Node.js applications into executable binaries.", {
-        command:
-          "The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute. The ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument.",
-      })
+      .argument("command", "The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute. The ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument.")
+      .description("Package Node.js applications into executable binaries.")
       .addHelpText(
         "after",
         `
@@ -320,5 +318,6 @@ Examples:
           }
         }
       )
+      .showHelpAfterError()
       .parseAsync();
   })();
