@@ -198,8 +198,6 @@ export default async function caxa({
   }
 }
 
-if (require.main === module) (async () => {})();
-
 /*
 import { jest, beforeAll, test, expect } from "@jest/globals";
 import os from "os";
