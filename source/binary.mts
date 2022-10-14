@@ -77,7 +77,10 @@ Examples:
   $ caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters.sh" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.mjs" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 `
   )
-  .action(async (options) => console.log(JSON.stringify(options, undefined, 2)))
+  .action(async (command, options) => {
+    console.log(command);
+    console.log(options);
+  })
   // .action(
   //   async (
   //     command: string[],
