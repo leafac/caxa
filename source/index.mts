@@ -212,49 +212,52 @@ if (process.env.TEST === "caxa") {
 
   await fs.remove(caxaDirectory);
 
-  const output = path.join(
-    testsDirectory,
-    `echo-command-line-parameters${process.platform === "win32" ? ".exe" : ""}`
-  );
-  await execa(process.execPath, [
-    "build/index.mjs",
-    "--input",
-    "examples/echo-command-line-parameters",
-    "--output",
-    output,
-    "--",
-    "{{caxa}}/node_modules/.bin/node",
-    "{{caxa}}/index.mjs",
-    "some",
-    "embedded arguments",
-    "--an-option-thats-part-of-the-command",
-  ]);
-  assert.equal(
-    (
-      await execa(output, ["and", "some arguments passed on the call"], {
-        all: true,
-      })
-    ).all,
-    dedent`
-      [
-        "some",
-        "embedded arguments",
-        "--an-option-thats-part-of-the-command",
-        "and",
-        "some arguments passed on the call"
-      ]
-    `
-  );
+  await (async () => {
+    const output = path.join(
+      testsDirectory,
+      `echo-command-line-parameters${
+        process.platform === "win32" ? ".exe" : ""
+      }`
+    );
+    await execa(process.execPath, [
+      "build/index.mjs",
+      "--input",
+      "examples/echo-command-line-parameters",
+      "--output",
+      output,
+      "--",
+      "{{caxa}}/node_modules/.bin/node",
+      "{{caxa}}/index.mjs",
+      "some",
+      "embedded arguments",
+      "--an-option-thats-part-of-the-command",
+    ]);
+    assert.equal(
+      (
+        await execa(output, ["and", "some arguments passed on the call"], {
+          all: true,
+        })
+      ).all,
+      dedent`
+        [
+          "some",
+          "embedded arguments",
+          "--an-option-thats-part-of-the-command",
+          "and",
+          "some arguments passed on the call"
+        ]
+      `
+    );
+  })();
 
-  /*
   if (process.platform === "darwin")
-    test("Echo Command Line Parameters.app", async () => {
+    await (async () => {
       const output = path.join(
         testsDirectory,
         "Echo Command Line Parameters.app"
       );
-      await execa("ts-node", [
-        "source/index.ts",
+      await execa(process.execPath, [
+        "build/index.mjs",
         "--input",
         "examples/echo-command-line-parameters",
         "--output",
@@ -268,7 +271,7 @@ if (process.env.TEST === "caxa") {
       console.log(
         `Test the macOS Application Bundle (.app) manually:\n$ open -a "${output}"`
       );
-      expect(
+      assert.equal(
         (
           await execa(
             path.join(
@@ -277,23 +280,25 @@ if (process.env.TEST === "caxa") {
             ),
             { all: true }
           )
-        ).all
-      ).toMatchInlineSnapshot(`
-      "[
-        \\"some\\",
-        \\"embedded arguments\\"
-      ]"
-    `);
-    });
+        ).all,
+        dedent`
+          [
+            "some",
+            "embedded arguments"
+          ]
+        `
+      );
+    })();
 
+  /*
   if (process.platform !== "win32")
     test("echo-command-line-parameters.sh", async () => {
       const output = path.join(
         testsDirectory,
         "echo-command-line-parameters.sh"
       );
-      await execa("ts-node", [
-        "source/index.ts",
+      await execa(process.execPath, [
+        "build/index.mjs",
         "--input",
         "examples/echo-command-line-parameters",
         "--output",
@@ -305,13 +310,13 @@ if (process.env.TEST === "caxa") {
         "embedded arguments",
         "--an-option-thats-part-of-the-command",
       ]);
-      expect(
+      assert.equal(
         (
           await execa(output, ["and", "some arguments passed on the call"], {
             all: true,
           })
         ).all
-      ).toMatchInlineSnapshot(`
+      ,`
       "[
         \\"some\\",
         \\"embedded arguments\\",
@@ -328,8 +333,8 @@ if (process.env.TEST === "caxa") {
       `native-modules${process.platform === "win32" ? ".exe" : ""}`
     );
     await execa("npm", ["ci"], { cwd: "examples/native-modules" });
-    await execa("ts-node", [
-      "source/index.ts",
+    await execa(process.execPath, [
+      "build/index.mjs",
       "--input",
       "examples/native-modules",
       "--output",
@@ -338,7 +343,7 @@ if (process.env.TEST === "caxa") {
       "{{caxa}}/node_modules/.bin/node",
       "{{caxa}}/index.mjs",
     ]);
-    expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
+    assert.equal((await execa(output, { all: true })).all,`
           "@leafac/sqlite: {
             \\"example\\": \\"caxa native modules\\"
           }
@@ -351,8 +356,8 @@ if (process.env.TEST === "caxa") {
       testsDirectory,
       `false${process.platform === "win32" ? ".exe" : ""}`
     );
-    await execa("ts-node", [
-      "source/index.ts",
+    await execa(process.execPath, [
+      "build/index.mjs",
       "--input",
       "examples/false",
       "--output",
@@ -361,7 +366,7 @@ if (process.env.TEST === "caxa") {
       "{{caxa}}/node_modules/.bin/node",
       "{{caxa}}/index.mjs",
     ]);
-    await expect(execa(output)).rejects.toThrowError(
+    await assert.equal(execa(output)).rejects.toThrowError(
       "Command failed with exit code 1"
     );
   });
@@ -373,8 +378,8 @@ if (process.env.TEST === "caxa") {
         process.platform === "win32" ? ".exe" : ""
       }`
     );
-    await execa("ts-node", [
-      "source/index.ts",
+    await execa(process.execPath, [
+      "build/index.mjs",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -386,8 +391,8 @@ if (process.env.TEST === "caxa") {
       "embedded arguments",
       "--an-option-thats-part-of-the-command",
     ]);
-    await execa("ts-node", [
-      "source/index.ts",
+    await execa(process.execPath, [
+      "build/index.mjs",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -399,9 +404,9 @@ if (process.env.TEST === "caxa") {
       "embedded arguments",
       "--an-option-thats-part-of-the-command",
     ]);
-    await expect(
-      execa("ts-node", [
-        "source/index.ts",
+    await assert.equal(
+      execa(process.execPath, [
+        "build/index.mjs",
         "--input",
         "examples/echo-command-line-parameters",
         "--output",
@@ -424,8 +429,8 @@ if (process.env.TEST === "caxa") {
         process.platform === "win32" ? ".exe" : ""
       }`
     );
-    await execa("ts-node", [
-      "source/index.ts",
+    await execa(process.execPath, [
+      "build/index.mjs",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -437,7 +442,7 @@ if (process.env.TEST === "caxa") {
       "--print",
       'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "index.mjs")))',
     ]);
-    expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    assert.equal((await execa(output, { all: true })).all,
       `"false"`
     );
   });
@@ -449,8 +454,8 @@ if (process.env.TEST === "caxa") {
         process.platform === "win32" ? ".exe" : ""
       }`
     );
-    await execa("ts-node", [
-      "source/index.ts",
+    await execa(process.execPath, [
+      "build/index.mjs",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -461,7 +466,7 @@ if (process.env.TEST === "caxa") {
       "--print",
       'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "package-lock.json")))',
     ]);
-    expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    assert.equal((await execa(output, { all: true })).all,
       `"false"`
     );
   });
@@ -473,8 +478,8 @@ if (process.env.TEST === "caxa") {
         process.platform === "win32" ? ".exe" : ""
       }`
     );
-    await execa("ts-node", [
-      "source/index.ts",
+    await execa(process.execPath, [
+      "build/index.mjs",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -486,7 +491,7 @@ if (process.env.TEST === "caxa") {
       "--print",
       'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "prepare-output.txt")))',
     ]);
-    expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    assert.equal((await execa(output, { all: true })).all,
       `"true"`
     );
   });
@@ -498,8 +503,8 @@ if (process.env.TEST === "caxa") {
         process.platform === "win32" ? ".exe" : ""
       }`
     );
-    await execa("ts-node", [
-      "source/index.ts",
+    await execa(process.execPath, [
+      "build/index.mjs",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -510,7 +515,7 @@ if (process.env.TEST === "caxa") {
       "--print",
       'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "node_modules/.bin/node")))',
     ]);
-    expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    assert.equal((await execa(output, { all: true })).all,
       `"false"`
     );
   });
@@ -522,9 +527,9 @@ if (process.env.TEST === "caxa") {
         process.platform === "win32" ? ".exe" : ""
       }`
     );
-    await expect(
-      execa("ts-node", [
-        "source/index.ts",
+    await assert.equal(
+      execa(process.execPath, [
+        "build/index.mjs",
         "--input",
         "examples/echo-command-line-parameters",
         "--output",
@@ -548,8 +553,8 @@ if (process.env.TEST === "caxa") {
         process.platform === "win32" ? ".exe" : ""
       }`
     );
-    await execa("ts-node", [
-      "source/index.ts",
+    await execa(process.execPath, [
+      "build/index.mjs",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -561,7 +566,7 @@ if (process.env.TEST === "caxa") {
       "--print",
       'JSON.stringify(require("fs").existsSync(require("path").join(require("os").tmpdir(), "caxa/applications/identifier")))',
     ]);
-    expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    assert.equal((await execa(output, { all: true })).all,
       `"true"`
     );
   });
@@ -573,8 +578,8 @@ if (process.env.TEST === "caxa") {
         process.platform === "win32" ? ".exe" : ""
       }`
     );
-    await execa("ts-node", [
-      "source/index.ts",
+    await execa(process.execPath, [
+      "build/index.mjs",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -587,7 +592,7 @@ if (process.env.TEST === "caxa") {
       "--print",
       'JSON.stringify(require("fs").existsSync(require("fs").readFileSync(require("path").join(String.raw`{{caxa}}`, "build-directory.txt"), "utf8")))',
     ]);
-    expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
+    assert.equal((await execa(output, { all: true })).all,
       `"true"`
     );
   });
@@ -599,8 +604,8 @@ if (process.env.TEST === "caxa") {
         process.platform === "win32" ? ".exe" : ""
       }`
     );
-    await execa("ts-node", [
-      "source/index.ts",
+    await execa(process.execPath, [
+      "build/index.mjs",
       "--input",
       "examples/echo-command-line-parameters",
       "--output",
@@ -614,7 +619,7 @@ if (process.env.TEST === "caxa") {
       "embedded arguments",
       "--an-option-thats-part-of-the-command",
     ]);
-    expect((await execa(output, { all: true })).all).toMatch(
+    assert.equal((await execa(output, { all: true })).all).toMatch(
       "This may take a while to run the first time, please wait..."
     );
   });
