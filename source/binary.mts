@@ -77,54 +77,55 @@ Examples:
   $ caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters.sh" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.mjs" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 `
   )
-  .action(
-    async (
-      command: string[],
-      {
-        input,
-        output,
-        force,
-        exclude = [],
-        dedupe,
-        prepareCommand,
-        includeNode,
-        stub,
-        identifier,
-        removeBuildDirectory,
-        uncompressionMessage,
-      }: {
-        input: string;
-        output: string;
-        force?: boolean;
-        exclude?: string[];
-        dedupe?: boolean;
-        prepareCommand?: string;
-        includeNode?: boolean;
-        stub?: string;
-        identifier?: string;
-        removeBuildDirectory?: boolean;
-        uncompressionMessage?: string;
-      }
-    ) => {
-      try {
-        await caxa({
-          input,
-          output,
-          command,
-          force,
-          exclude,
-          dedupe,
-          prepareCommand,
-          includeNode,
-          stub,
-          identifier,
-          removeBuildDirectory,
-          uncompressionMessage,
-        });
-      } catch (error: any) {
-        console.error(error.message);
-        process.exit(1);
-      }
-    }
-  )
+  .action(async (options) => console.log(JSON.stringify(options, undefined, 2)))
+  // .action(
+  //   async (
+  //     command: string[],
+  //     {
+  //       input,
+  //       output,
+  //       force,
+  //       exclude = [],
+  //       dedupe,
+  //       prepareCommand,
+  //       includeNode,
+  //       stub,
+  //       identifier,
+  //       removeBuildDirectory,
+  //       uncompressionMessage,
+  //     }: {
+  //       input: string;
+  //       output: string;
+  //       force?: boolean;
+  //       exclude?: string[];
+  //       dedupe?: boolean;
+  //       prepareCommand?: string;
+  //       includeNode?: boolean;
+  //       stub?: string;
+  //       identifier?: string;
+  //       removeBuildDirectory?: boolean;
+  //       uncompressionMessage?: string;
+  //     }
+  //   ) => {
+  //     try {
+  //       await caxa({
+  //         input,
+  //         output,
+  //         command,
+  //         force,
+  //         exclude,
+  //         dedupe,
+  //         prepareCommand,
+  //         includeNode,
+  //         stub,
+  //         identifier,
+  //         removeBuildDirectory,
+  //         uncompressionMessage,
+  //       });
+  //     } catch (error: any) {
+  //       console.error(error.message);
+  //       process.exit(1);
+  //     }
+  //   }
+  // )
   .parseAsync();
