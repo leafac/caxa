@@ -100,20 +100,25 @@ export default async function caxa({
     const name = path.basename(output, ".app");
     await fs.writeFile(
       path.join(output, "Contents/MacOS", name),
-      `#!/usr/bin/env sh\nopen "$(dirname "$0")/../Resources/${name}"`,
+      bash`
+        #!/usr/bin/env sh
+        open "$(dirname "$0")/../Resources/${name}"
+      `,
       { mode: 0o755 }
     );
     await fs.writeFile(
       path.join(output, "Contents/Resources", name),
-      `#!/usr/bin/env sh\n${command
-        .map(
-          (part) =>
-            `"${part.replace(
-              /\{\{\s*caxa\s*\}\}/g,
-              `$(dirname "$0")/application`
-            )}"`
-        )
-        .join(" ")}`,
+      bash`
+        #!/usr/bin/env sh
+        ${command
+          .map(
+            (part) =>
+              `"${part.replace(
+                /\{\{\s*caxa\s*\}\}/g,
+                `$(dirname "$0")/application`
+              )}"`
+          )
+          .join(" ")}`,
       { mode: 0o755 }
     );
   } else if (output.endsWith(".sh")) {
