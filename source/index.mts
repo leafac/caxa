@@ -205,17 +205,18 @@ export default async function caxa({
 }
 
 if (process.env.TEST === "caxa") {
+  delete process.env.TEST;
+
   const caxaDirectory = path.join(os.tmpdir(), "caxa");
   const testsDirectory = path.join(caxaDirectory, "tests");
 
   await fs.remove(caxaDirectory);
 
-  /*
   const output = path.join(
     testsDirectory,
     `echo-command-line-parameters${process.platform === "win32" ? ".exe" : ""}`
   );
-  await execa("node", [
+  await execa(process.execPath, [
     "build/index.mjs",
     "--input",
     "examples/echo-command-line-parameters",
@@ -228,23 +229,24 @@ if (process.env.TEST === "caxa") {
     "embedded arguments",
     "--an-option-thats-part-of-the-command",
   ]);
-  assert.equal()
-  expect(
+  assert.equal(
     (
       await execa(output, ["and", "some arguments passed on the call"], {
         all: true,
       })
-    ).all
-  ).toMatchInlineSnapshot(`
-  "[
-    \\"some\\",
-    \\"embedded arguments\\",
-    \\"--an-option-thats-part-of-the-command\\",
-    \\"and\\",
-    \\"some arguments passed on the call\\"
-  ]"
-`);
+    ).all,
+    dedent`
+      [
+        "some",
+        "embedded arguments",
+        "--an-option-thats-part-of-the-command",
+        "and",
+        "some arguments passed on the call"
+      ]
+    `
+  );
 
+  /*
   if (process.platform === "darwin")
     test("Echo Command Line Parameters.app", async () => {
       const output = path.join(
