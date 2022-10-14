@@ -226,7 +226,7 @@ test("echo-command-line-parameters", async () => {
     output,
     "--",
     "{{caxa}}/node_modules/.bin/node",
-    "{{caxa}}/index.js",
+    "{{caxa}}/index.mjs",
     "some",
     "embedded arguments",
     "--an-option-thats-part-of-the-command",
@@ -262,7 +262,7 @@ if (process.platform === "darwin")
       output,
       "--",
       "{{caxa}}/node_modules/.bin/node",
-      "{{caxa}}/index.js",
+      "{{caxa}}/index.mjs",
       "some",
       "embedded arguments",
     ]);
@@ -295,7 +295,7 @@ if (process.platform !== "win32")
       output,
       "--",
       "{{caxa}}/node_modules/.bin/node",
-      "{{caxa}}/index.js",
+      "{{caxa}}/index.mjs",
       "some",
       "embedded arguments",
       "--an-option-thats-part-of-the-command",
@@ -331,7 +331,7 @@ test("native-modules", async () => {
     output,
     "--",
     "{{caxa}}/node_modules/.bin/node",
-    "{{caxa}}/index.js",
+    "{{caxa}}/index.mjs",
   ]);
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(`
           "@leafac/sqlite: {
@@ -354,7 +354,7 @@ test("false", async () => {
     output,
     "--",
     "{{caxa}}/node_modules/.bin/node",
-    "{{caxa}}/index.js",
+    "{{caxa}}/index.mjs",
   ]);
   await expect(execa(output)).rejects.toThrowError(
     "Command failed with exit code 1"
@@ -376,7 +376,7 @@ test("--force", async () => {
     output,
     "--",
     "{{caxa}}/node_modules/.bin/node",
-    "{{caxa}}/index.js",
+    "{{caxa}}/index.mjs",
     "some",
     "embedded arguments",
     "--an-option-thats-part-of-the-command",
@@ -389,7 +389,7 @@ test("--force", async () => {
     output,
     "--",
     "{{caxa}}/node_modules/.bin/node",
-    "{{caxa}}/index.js",
+    "{{caxa}}/index.mjs",
     "some",
     "embedded arguments",
     "--an-option-thats-part-of-the-command",
@@ -404,7 +404,7 @@ test("--force", async () => {
       "--no-force",
       "--",
       "{{caxa}}/node_modules/.bin/node",
-      "{{caxa}}/index.js",
+      "{{caxa}}/index.mjs",
       "some",
       "embedded arguments",
       "--an-option-thats-part-of-the-command",
@@ -426,11 +426,11 @@ test("--exclude", async () => {
     "--output",
     output,
     "--exclude",
-    "examples/echo-command-line-parameters/index.js",
+    "examples/echo-command-line-parameters/index.mjs",
     "--",
     "{{caxa}}/node_modules/.bin/node",
     "--print",
-    'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "index.js")))',
+    'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "index.mjs")))',
   ]);
   expect((await execa(output, { all: true })).all).toMatchInlineSnapshot(
     `"false"`
@@ -528,7 +528,7 @@ test("--stub", async () => {
       "/a-path-that-doesnt-exist",
       "--",
       "{{caxa}}/node_modules/.bin/node",
-      "{{caxa}}/index.js",
+      "{{caxa}}/index.mjs",
       "some",
       "embedded arguments",
       "--an-option-thats-part-of-the-command",
@@ -604,7 +604,7 @@ test("--uncompression-message", async () => {
     "This may take a while to run the first time, please wait...",
     "--",
     "{{caxa}}/node_modules/.bin/node",
-    "{{caxa}}/index.js",
+    "{{caxa}}/index.mjs",
     "some",
     "embedded arguments",
     "--an-option-thats-part-of-the-command",
