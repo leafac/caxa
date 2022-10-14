@@ -3,6 +3,7 @@
 import path from "node:path";
 import url from "node:url";
 import os from "node:os";
+import stream from "node:stream/promises";
 import assert from "node:assert/strict";
 import fs from "fs-extra";
 import { globbySync } from "globby";
@@ -199,13 +200,7 @@ export default async function caxa({
     archive.pipe(archiveStream);
     archive.directory(buildDirectory, false);
     await archive.finalize();
-    // FIXME: When dropping support for Node.js 14:
-    // import stream from "node:stream/promises";
-    // await stream.finished(archiveStream);
-    await new Promise((resolve, reject) => {
-      archiveStream.on("finish", resolve);
-      archiveStream.on("error", reject);
-    });
+    await stream.finished(archiveStream);
   }
 }
 
