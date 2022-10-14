@@ -3,6 +3,7 @@
 import path from "node:path";
 import url from "node:url";
 import os from "node:os";
+import assert from "node:assert/strict";
 import fs from "fs-extra";
 import { globbySync } from "globby";
 import { execa, execaCommand } from "execa";
@@ -219,8 +220,8 @@ if (process.env.TEST === "caxa") {
     testsDirectory,
     `echo-command-line-parameters${process.platform === "win32" ? ".exe" : ""}`
   );
-  await execa("ts-node", [
-    "source/index.ts",
+  await execa("node", [
+    "build/index.mjs",
     "--input",
     "examples/echo-command-line-parameters",
     "--output",
@@ -232,6 +233,7 @@ if (process.env.TEST === "caxa") {
     "embedded arguments",
     "--an-option-thats-part-of-the-command",
   ]);
+  assert.equal()
   expect(
     (
       await execa(output, ["and", "some arguments passed on the call"], {
