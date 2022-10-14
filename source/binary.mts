@@ -13,7 +13,7 @@ await commander.program
   )
   .requiredOption(
     "-o, --output <output>",
-    "[Required] The path where the executable will be produced. On Windows, must end in ‘.exe’. In macOS, may end in ‘.app’ to generate a macOS Application Bundle. In macOS and Linux, may end in ‘.sh’ to use the Shell Stub, which takes less space, but depends on some tools being installed on the end-user machine, for example, ‘tar’, ‘tail’, and so forth."
+    "[Required] The path where the executable will be produced. On Windows, must end in ‘.exe’. In macOS and Linux, may have no extension to produce regular binary. In macOS, may end in ‘.app’ to generate a macOS Application Bundle. In macOS and Linux, may end in ‘.sh’ to use the Shell Stub, which is a bit smaller, but depends on some tools being installed on the end-user machine, for example, ‘tar’, ‘tail’, and so forth."
   )
   .option("-F, --no-force", "[Advanced] Don’t overwrite output if it exists.")
   .option(
