@@ -1,14 +1,22 @@
 #!/usr/bin/env node
 
 import commander from "commander";
+import fs from "fs-extra";
 import caxa from "./index.mjs";
 
 await commander.program
-  .version(require("../package.json").version)
+  .name("caxa")
+  .description("Package Node.js applications into executable binaries")
+  .version(
+    JSON.parse(
+      await fs.readFile(new URL("../package.json", import.meta.url), "utf8")
+    ).version
+  )
+  .showHelpAfterError()
   .requiredOption("-i, --input <input>", "The input directory to package.")
   .requiredOption(
     "-o, --output <output>",
-    "The path where the executable will be produced. On Windows must end in ‘.exe’. In macOS may end in ‘.app’ to generate a macOS Application Bundle. In macOS and Linux, may end in ‘.sh’ to use the Shell Stub, which takes less space, but depends on some tools being installed on the end-user machine, for example, ‘tar’, ‘tail’, and so forth."
+    "The path where the executable will be produced. On Windows, must end in ‘.exe’. In macOS, may end in ‘.app’ to generate a macOS Application Bundle. In macOS and Linux, may end in ‘.sh’ to use the Shell Stub, which takes less space, but depends on some tools being installed on the end-user machine, for example, ‘tar’, ‘tail’, and so forth."
   )
   .option("-f, --force", "[Advanced] Overwrite output if it exists.", true)
   .option("-F, --no-force")
@@ -47,12 +55,10 @@ await commander.program
     "-m, --uncompression-message <message>",
     "[Advanced] A message to show when uncompressing, for example, ‘This may take a while to run the first time, please wait...’."
   )
-  .arguments("<command...>")
   .argument(
-    "command",
+    "<command...>",
     "The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute. The ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument."
   )
-  .description("Package Node.js applications into executable binaries.")
   .addHelpText(
     "after",
     `
@@ -115,11 +121,10 @@ Examples:
           removeBuildDirectory,
           uncompressionMessage,
         });
-      } catch (error) {
+      } catch (error: any) {
         console.error(error.message);
         process.exit(1);
       }
     }
   )
-  .showHelpAfterError()
   .parseAsync();
