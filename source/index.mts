@@ -292,7 +292,7 @@ if (process.env.TEST === "caxa") {
 
   /*
   if (process.platform !== "win32")
-    test("echo-command-line-parameters.sh", async () => {
+    await (async () => {
       const output = path.join(
         testsDirectory,
         "echo-command-line-parameters.sh"
@@ -325,9 +325,9 @@ if (process.env.TEST === "caxa") {
         \\"some arguments passed on the call\\"
       ]"
     `);
-    });
+    })();
 
-  test("native-modules", async () => {
+  await (async () => {
     const output = path.join(
       testsDirectory,
       `native-modules${process.platform === "win32" ? ".exe" : ""}`
@@ -349,9 +349,9 @@ if (process.env.TEST === "caxa") {
           }
           sharp: 48"
       `);
-  });
+  })();
 
-  test("false", async () => {
+  await (async () => {
     const output = path.join(
       testsDirectory,
       `false${process.platform === "win32" ? ".exe" : ""}`
@@ -369,9 +369,9 @@ if (process.env.TEST === "caxa") {
     await assert.equal(execa(output)).rejects.toThrowError(
       "Command failed with exit code 1"
     );
-  });
+  })();
 
-  test("--force", async () => {
+  await (async () => {
     const output = path.join(
       testsDirectory,
       `echo-command-line-parameters--force${
@@ -420,9 +420,9 @@ if (process.env.TEST === "caxa") {
         "--an-option-thats-part-of-the-command",
       ])
     ).rejects.toThrowError();
-  });
+  })();
 
-  test("--exclude", async () => {
+  await (async () => {
     const output = path.join(
       testsDirectory,
       `echo-command-line-parameters--exclude${
@@ -445,9 +445,9 @@ if (process.env.TEST === "caxa") {
     assert.equal((await execa(output, { all: true })).all,
       `"false"`
     );
-  });
+  })();
 
-  test("--dedupe", async () => {
+  await (async () => {
     const output = path.join(
       testsDirectory,
       `echo-command-line-parameters--dedupe${
@@ -469,9 +469,9 @@ if (process.env.TEST === "caxa") {
     assert.equal((await execa(output, { all: true })).all,
       `"false"`
     );
-  });
+  })();
 
-  test("--prepare-command", async () => {
+  await (async () => {
     const output = path.join(
       testsDirectory,
       `echo-command-line-parameters--prepare-command${
@@ -494,9 +494,9 @@ if (process.env.TEST === "caxa") {
     assert.equal((await execa(output, { all: true })).all,
       `"true"`
     );
-  });
+  })();
 
-  test("--include-node", async () => {
+  await (async () => {
     const output = path.join(
       testsDirectory,
       `echo-command-line-parameters--include-node${
@@ -518,9 +518,9 @@ if (process.env.TEST === "caxa") {
     assert.equal((await execa(output, { all: true })).all,
       `"false"`
     );
-  });
+  })();
 
-  test("--stub", async () => {
+  await (async () => {
     const output = path.join(
       testsDirectory,
       `echo-command-line-parameters--stub${
@@ -544,9 +544,9 @@ if (process.env.TEST === "caxa") {
         "--an-option-thats-part-of-the-command",
       ])
     ).rejects.toThrowError();
-  });
+  })();
 
-  test("--identifier", async () => {
+  await (async () => {
     const output = path.join(
       testsDirectory,
       `echo-command-line-parameters--identifier${
@@ -569,9 +569,9 @@ if (process.env.TEST === "caxa") {
     assert.equal((await execa(output, { all: true })).all,
       `"true"`
     );
-  });
+  })();
 
-  test("--remove-build-directory", async () => {
+  await (async () => {
     const output = path.join(
       testsDirectory,
       `echo-command-line-parameters--remove-build-directory${
@@ -595,9 +595,9 @@ if (process.env.TEST === "caxa") {
     assert.equal((await execa(output, { all: true })).all,
       `"true"`
     );
-  });
+  })();
 
-  test("--uncompression-message", async () => {
+  await (async () => {
     const output = path.join(
       testsDirectory,
       `echo-command-line-parameters--uncompression-message${
@@ -622,7 +622,7 @@ if (process.env.TEST === "caxa") {
     assert.equal((await execa(output, { all: true })).all).toMatch(
       "This may take a while to run the first time, please wait..."
     );
-  });
+  })();
   */
   process.exit(0);
 }
