@@ -7,12 +7,6 @@ import caxa from "./index.mjs";
 await commander.program
   .name("caxa")
   .description("Package Node.js applications into executable binaries")
-  .version(
-    JSON.parse(
-      await fs.readFile(new URL("../package.json", import.meta.url), "utf8")
-    ).version
-  )
-  .showHelpAfterError()
   .requiredOption(
     "-i, --input <input>",
     "[Required] The input directory to package."
@@ -54,6 +48,11 @@ await commander.program
   .argument(
     "<command...>",
     "The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute. The ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument."
+  )
+  .version(
+    JSON.parse(
+      await fs.readFile(new URL("../package.json", import.meta.url), "utf8")
+    ).version
   )
   .addHelpText(
     "after",
@@ -122,4 +121,5 @@ Examples:
       }
     }
   )
+  .showHelpAfterError()
   .parseAsync();
