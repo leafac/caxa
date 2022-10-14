@@ -5,7 +5,6 @@ import fs from "fs-extra";
 import execa from "execa";
 import archiver from "archiver";
 import cryptoRandomString from "crypto-random-string";
-import commander from "commander";
 import { globby } from "globby";
 import bash from "dedent";
 

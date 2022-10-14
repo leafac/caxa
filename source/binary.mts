@@ -1,5 +1,9 @@
 #!/usr/bin/env node
 
+import commander from "commander";
+
+import caxa from "./index.mjs";
+
 await commander.program
   .version(require("../package.json").version)
   .requiredOption("-i, --input <input>", "The input directory to package.")
