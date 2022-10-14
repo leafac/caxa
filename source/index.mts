@@ -204,6 +204,10 @@ export default async function caxa({
   }
 }
 
+if (url.fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+  
+}
+
 if (process.env.TEST === "caxa") {
   const caxaDirectory = path.join(os.tmpdir(), "caxa");
   const testsDirectory = path.join(caxaDirectory, "tests");
