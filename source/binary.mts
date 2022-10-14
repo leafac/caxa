@@ -24,32 +24,26 @@ await commander.program
     `[Advanced] Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match will be excluded. [Super-Advanced, Please don’t use] If you wish to emulate ‘--include’, you may use ‘--exclude "*" ".*" "!path-to-include" ...’. The problem with ‘--include’ is that if you change your project structure but forget to change the caxa invocation, then things will subtly fail only in the packaged version.`
   )
   .option(
-    "-d, --dedupe",
-    "[Advanced] Run ‘npm dedupe --production’ on the build directory.",
-    true
+    "-D, --no-dedupe",
+    "[Advanced] Don’t run ‘npm dedupe --production’ on the build directory."
   )
-  .option("-D, --no-dedupe")
   .option(
     "-p, --prepare-command <command>",
     "[Advanced] Command to run on the build directory while packaging."
   )
   .option(
-    "-n, --include-node",
-    "[Advanced] Copy the Node.js executable to ‘{{caxa}}/node_modules/.bin/node’.",
-    true
+    "-N, --no-include-node",
+    "[Advanced] Don’t copy the Node.js executable to ‘{{caxa}}/node_modules/.bin/node’."
   )
-  .option("-N, --no-include-node")
   .option("-s, --stub <path>", "[Advanced] Path to the stub.")
   .option(
     "--identifier <identifier>",
-    "[Advanced] Build identifier, which is the path in which the application will be unpacked."
+    "[Advanced] Build identifier, which is part of the path in which the application will be unpacked."
   )
   .option(
-    "-b, --remove-build-directory",
-    "[Advanced] Remove the build directory after the build.",
-    true
+    "-B, --no-remove-build-directory",
+    "[Advanced] Remove the build directory after the build."
   )
-  .option("-B, --no-remove-build-directory")
   .option(
     "-m, --uncompression-message <message>",
     "[Advanced] A message to show when uncompressing, for example, ‘This may take a while to run the first time, please wait...’."
