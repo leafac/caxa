@@ -565,6 +565,11 @@ As you see from this long README, despite being simple in spirit, caxa is the re
 
 ### Changelog
 
+#### v3.0.0
+
+- [ESM-only](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
+- Dropped support for Node.js 14.
+
 #### v2.1.0
 
 - Added a new stub strategy: Shell Stub. It’s a simple Bash script that does the same as the Go stub, except that it takes less space (about 10 lines as opposed to a 2MB Go binary), but it depends on some tools being installed on the end-user machine, for example, `tar`, `tail`, and so forth.
