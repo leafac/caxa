@@ -6,8 +6,6 @@ import archiver from "archiver";
 import cryptoRandomString from "crypto-random-string";
 import { globby } from "globby";
 import bash from "dedent";
-/*
-
 
 export default async function caxa({
   input,
@@ -199,6 +197,7 @@ export default async function caxa({
   }
 }
 
+/*
 import { jest, beforeAll, test, expect } from "@jest/globals";
 import os from "os";
 import path from "path";
