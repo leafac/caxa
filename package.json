@@ -18,13 +18,13 @@
     "https://github.com/sponsors/leafac",
     "https://btc.com/34KJBgtaFYMtDqpSgMayw9qiKWg2GQXA9M"
   ],
-  "exports": "./distribution/index.mjs",
-  "types": "./distribution/index.d.mts",
-  "bin": "./distribution/binary.mjs",
+  "exports": "./build/index.mjs",
+  "types": "./build/index.d.mts",
+  "bin": "./build/binary.mjs",
   "scripts": {
     "prepare": "cd ./source/ && tsc",
     "prepare:stubs": "shx rm -f stubs/stub--win32--x64 && cross-env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o stubs/stub--win32--x64 stubs/stub.go && shx echo >> stubs/stub--win32--x64 && shx echo CAXACAXACAXA >> stubs/stub--win32--x64 && shx rm -f stubs/stub--darwin--x64 && cross-env CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o stubs/stub--darwin--x64 stubs/stub.go && shx echo >> stubs/stub--darwin--x64 && shx echo CAXACAXACAXA >> stubs/stub--darwin--x64 && shx rm -f stubs/stub--darwin--arm64 && cross-env CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build -o stubs/stub--darwin--arm64 stubs/stub.go && shx echo >> stubs/stub--darwin--arm64 && shx echo CAXACAXACAXA >> stubs/stub--darwin--arm64 && shx rm -f stubs/stub--linux--x64 && cross-env CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o stubs/stub--linux--x64 stubs/stub.go && shx echo >> stubs/stub--linux--x64 && shx echo CAXACAXACAXA >> stubs/stub--linux--x64 && shx rm -f stubs/stub--linux--arm64 && cross-env CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o stubs/stub--linux--arm64 stubs/stub.go && shx echo >> stubs/stub--linux--arm64 && shx echo CAXACAXACAXA >> stubs/stub--linux--arm64 && shx rm -f stubs/stub--linux--arm && cross-env CGO_ENABLED=0 GOOS=linux GOARCH=arm go build -o stubs/stub--linux--arm stubs/stub.go && shx echo >> stubs/stub--linux--arm && shx echo CAXACAXACAXA >> stubs/stub--linux--arm",
-    "test": "prettier --check \"source/**/*.mts\" --end-of-line auto && npm run prepare && npm run prepare:stubs && env TEST=caxa node ./distribution/index.mjs"
+    "test": "prettier --check \"source/**/*.mts\" --end-of-line auto && npm run prepare && npm run prepare:stubs && env TEST=caxa node ./build/index.mjs"
   },
   "dependencies": {
     "archiver": "^5.3.1",
