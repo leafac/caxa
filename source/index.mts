@@ -606,7 +606,7 @@ if (process.env.TEST === "caxa") {
       output,
       "--no-remove-build-directory",
       "--prepare-command",
-      `"${process.execPath}" --eval "require('fs').writeFileSync('build-directory.txt', process.cwd())"`,
+      `"${process.execPath}" --input-type module --eval "(await import('fs')).writeFileSync('build-directory.txt', process.cwd())"`,
       "--",
       process.execPath,
       "--input-type",
