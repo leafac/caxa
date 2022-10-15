@@ -94,50 +94,38 @@ $ npm install --save-dev caxa
 $ npx caxa --help
 Usage: caxa [options] <command...>
 
-Package Node.js applications into executable binaries.
+Package Node.js applications into executable binaries
 
 Arguments:
-  command                                The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute.
-                                         The ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at
-                                         ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument.
+  command                                The command to run and optional arguments to pass to the command every time the executable is called. Paths must be absolute. The ‘{{caxa}}’ placeholder is substituted for the folder from which the package runs. The ‘node’ executable is available at ‘{{caxa}}/node_modules/.bin/node’. Use double quotes to delimit the command and each argument.
 
 Options:
-  -V, --version                          output the version number
-  -i, --input <input>                    The input directory to package.
-  -o, --output <output>                  The path where the executable will be produced. On Windows must end in ‘.exe’. In macOS may end in ‘.app’ to generate a macOS
-                                         Application Bundle. In macOS and Linux, may end in ‘.sh’ to use the Shell Stub, which takes less space, but depends on some
-                                         tools being installed on the end-user machine, for example, ‘tar’, ‘tail’, and so forth.
-  -f, --force                            [Advanced] Overwrite output if it exists. (default: true)
-  -F, --no-force
-  -e, --exclude <path...>                [Advanced] Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match
-                                         will be excluded. [Super-Advanced, Please don’t use] If you wish to emulate ‘--include’, you may use ‘--exclude "*" ".*"
-                                         "!path-to-include" ...’. The problem with ‘--include’ is that if you change your project structure but forget to change the caxa
-                                         invocation, then things will subtly fail only in the packaged version.
-  -d, --dedupe                           [Advanced] Run ‘npm dedupe --production’ on the build directory. (default: true)
-  -D, --no-dedupe
-  -p, --prepare-command <command>        [Advanced] Command to run on the build directory while packaging.
-  -n, --include-node                     [Advanced] Copy the Node.js executable to ‘{{caxa}}/node_modules/.bin/node’. (default: true)
-  -N, --no-include-node
+  -i, --input <input>                    [Required] The input directory to package.
+  -o, --output <output>                  [Required] The path where the executable will be produced. On Windows, must end in ‘.exe’. In macOS and Linux, may have no extension to produce regular binary. In macOS and Linux, may end in ‘.sh’ to use the Shell Stub, which is a bit smaller, but depends on some tools being installed on the end-user machine, for example, ‘tar’, ‘tail’, and so forth. In macOS, may end in ‘.app’ to generate a macOS Application Bundle.
+  -F, --no-force                         [Advanced] Don’t overwrite output if it exists.
+  -e, --exclude <path...>                [Advanced] Paths to exclude from the build. The paths are passed to https://github.com/sindresorhus/globby and paths that match will be excluded. [Super-Advanced, Please don’t use] If you wish to emulate ‘--include’, you may use ‘--exclude "*" ".*" "!path-to-include" ...’. The problem with ‘--include’ is that if you change your project structure but forget to change the caxa invocation, then things will subtly fail only in the packaged version.
+  -D, --no-dedupe                        [Advanced] Don’t run ‘npm dedupe --production’ on the build directory.
+  -p, --prepare-command <command>        [Advanced] Command to run on the build directory after ‘npm dedupe --production’, before packaging.
+  -N, --no-include-node                  [Advanced] Don’t copy the Node.js executable to ‘{{caxa}}/node_modules/.bin/node’.
   -s, --stub <path>                      [Advanced] Path to the stub.
-  --identifier <identifier>              [Advanced] Build identifier, which is the path in which the application will be unpacked.
-  -b, --remove-build-directory           [Advanced] Remove the build directory after the build. (default: true)
-  -B, --no-remove-build-directory
+  --identifier <identifier>              [Advanced] Build identifier, which is part of the path in which the application will be unpacked.
+  -B, --no-remove-build-directory        [Advanced] Remove the build directory after the build.
   -m, --uncompression-message <message>  [Advanced] A message to show when uncompressing, for example, ‘This may take a while to run the first time, please wait...’.
+  -V, --version                          output the version number
   -h, --help                             display help for command
 
 Examples:
-
   Windows:
   > caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters.exe" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.mjs" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 
   macOS/Linux:
   $ caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.mjs" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 
-  macOS (Application Bundle):
-  $ caxa --input "examples/echo-command-line-parameters" --output "Echo Command Line Parameters.app" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.mjs" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
-
   macOS/Linux (Shell Stub):
   $ caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters.sh" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.mjs" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
+
+  macOS (Application Bundle):
+  $ caxa --input "examples/echo-command-line-parameters" --output "Echo Command Line Parameters.app" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.mjs" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
 ```
 
 Here’s [a real-world example of using caxa](https://github.com/courselore/courselore/blob/c0b541d63fc656986ebeab4af3f3dc9bc2909972/.github/workflows/main.yml). This example includes packaging for Windows, macOS, and Linux; distributing tags with GitHub Releases Assets; distributing Insiders Builds for every push with GitHub Actions Artifacts; and deploying a binary to a server with `rsync` (and publishing an npm package as well, but that’s beyond the scope of caxa).
@@ -567,8 +555,12 @@ As you see from this long README, despite being simple in spirit, caxa is the re
 
 #### v3.0.0
 
-- [ESM-only](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
-- Dropped support for Node.js 14.
+This version modernizes the codebase in preparation to add new features, for example, the much anticipated <https://github.com/leafac/caxa/pull/60>.
+
+It doesn’t add or remove features, yet it’s a major version bump because it includes the following backwards-incompatible changes:
+
+- caxa is now [ESM-only](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c).
+- We dropped support for Node.js 14.
 
 #### v2.1.0
 
