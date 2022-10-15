@@ -2,22 +2,22 @@
   "name": "caxa",
   "version": "3.0.1",
   "description": "Package Node.js applications into executable binaries",
-  "author": "Leandro Facchinetti <caxa@leafac.com> (https://leafac.com)",
-  "homepage": "https://github.com/leafac/caxa",
-  "bugs": "https://github.com/leafac/caxa/issues",
-  "repository": "leafac/caxa",
-  "license": "MIT",
   "keywords": [
     "packing",
     "deployment",
     "binary"
   ],
+  "homepage": "https://github.com/leafac/caxa",
+  "bugs": "https://github.com/leafac/caxa/issues",
+  "repository": "leafac/caxa",
   "funding": [
     "https://patreon.com/leafac",
     "https://paypal.me/LeandroFacchinettiEU",
     "https://github.com/sponsors/leafac",
     "https://btc.com/34KJBgtaFYMtDqpSgMayw9qiKWg2GQXA9M"
   ],
+  "author": "Leandro Facchinetti <caxa@leafac.com> (https://leafac.com)",
+  "license": "MIT",
   "exports": "./build/index.mjs",
   "types": "./build/index.d.mts",
   "bin": "./build/index.mjs",
