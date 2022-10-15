@@ -354,7 +354,6 @@ if (process.env.TEST === "caxa") {
       `
     );
   })();
-  */
 
   await (async () => {
     const output = path.join(
@@ -374,7 +373,6 @@ if (process.env.TEST === "caxa") {
     assert.equal((await execa(output, { reject: false })).exitCode, 1);
   })();
 
-  /*
   await (async () => {
     const output = path.join(
       testsDirectory,
@@ -382,6 +380,8 @@ if (process.env.TEST === "caxa") {
         process.platform === "win32" ? ".exe" : ""
       }`
     );
+    await fs.ensureDir(path.dirname(output));
+    await fs.writeFile(output, "");
     await execa(process.execPath, [
       "build/index.mjs",
       "--input",
@@ -395,36 +395,47 @@ if (process.env.TEST === "caxa") {
       "embedded arguments",
       "--an-option-thats-part-of-the-command",
     ]);
-    await execa(process.execPath, [
-      "build/index.mjs",
-      "--input",
-      "examples/echo-command-line-parameters",
-      "--output",
-      output,
-      "--",
-      "{{caxa}}/node_modules/.bin/node",
-      "{{caxa}}/index.mjs",
-      "some",
-      "embedded arguments",
-      "--an-option-thats-part-of-the-command",
-    ]);
-    await assert.equal(
-      execa(process.execPath, [
-        "build/index.mjs",
-        "--input",
-        "examples/echo-command-line-parameters",
-        "--output",
-        output,
-        "--no-force",
-        "--",
-        "{{caxa}}/node_modules/.bin/node",
-        "{{caxa}}/index.mjs",
-        "some",
-        "embedded arguments",
-        "--an-option-thats-part-of-the-command",
-      ])
-    ).rejects.toThrowError();
+    assert.equal(
+      (
+        await execa(output, ["and", "some arguments passed on the call"], {
+          all: true,
+        })
+      ).all,
+      dedent`
+        [
+          "some",
+          "embedded arguments",
+          "--an-option-thats-part-of-the-command",
+          "and",
+          "some arguments passed on the call"
+        ]
+      `
+    );
+    assert.equal(
+      (
+        await execa(
+          process.execPath,
+          [
+            "build/index.mjs",
+            "--input",
+            "examples/echo-command-line-parameters",
+            "--output",
+            output,
+            "--no-force",
+            "--",
+            "{{caxa}}/node_modules/.bin/node",
+            "{{caxa}}/index.mjs",
+            "some",
+            "embedded arguments",
+            "--an-option-thats-part-of-the-command",
+          ],
+          { reject: false }
+        )
+      ).exitCode,
+      1
+    );
   })();
+  */
 
   await (async () => {
     const output = path.join(
@@ -446,11 +457,10 @@ if (process.env.TEST === "caxa") {
       "--print",
       'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "index.mjs")))',
     ]);
-    assert.equal((await execa(output, { all: true })).all,
-      `"false"`
-    );
+    assert.equal((await execa(output, { all: true })).all, `false`);
   })();
 
+  /*
   await (async () => {
     const output = path.join(
       testsDirectory,
@@ -471,7 +481,7 @@ if (process.env.TEST === "caxa") {
       'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "package-lock.json")))',
     ]);
     assert.equal((await execa(output, { all: true })).all,
-      `"false"`
+      `false`
     );
   })();
 
@@ -496,7 +506,7 @@ if (process.env.TEST === "caxa") {
       'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "prepare-output.txt")))',
     ]);
     assert.equal((await execa(output, { all: true })).all,
-      `"true"`
+      `true`
     );
   })();
 
@@ -520,7 +530,7 @@ if (process.env.TEST === "caxa") {
       'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "node_modules/.bin/node")))',
     ]);
     assert.equal((await execa(output, { all: true })).all,
-      `"false"`
+      `false`
     );
   })();
 
@@ -571,7 +581,7 @@ if (process.env.TEST === "caxa") {
       'JSON.stringify(require("fs").existsSync(require("path").join(require("os").tmpdir(), "caxa/applications/identifier")))',
     ]);
     assert.equal((await execa(output, { all: true })).all,
-      `"true"`
+      `true`
     );
   })();
 
@@ -597,7 +607,7 @@ if (process.env.TEST === "caxa") {
       'JSON.stringify(require("fs").existsSync(require("fs").readFileSync(require("path").join(String.raw`{{caxa}}`, "build-directory.txt"), "utf8")))',
     ]);
     assert.equal((await execa(output, { all: true })).all,
-      `"true"`
+      `true`
     );
   })();
 
