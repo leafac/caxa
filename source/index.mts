@@ -212,7 +212,6 @@ if (process.env.TEST === "caxa") {
 
   await fs.remove(caxaDirectory);
 
-  /*
   await (async () => {
     const output = path.join(
       testsDirectory,
@@ -376,7 +375,7 @@ if (process.env.TEST === "caxa") {
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--force${
+      `echo-command-line-parameters--no-force${
         process.platform === "win32" ? ".exe" : ""
       }`
     );
@@ -435,7 +434,6 @@ if (process.env.TEST === "caxa") {
       1
     );
   })();
-  */
 
   await (async () => {
     const output = path.join(
@@ -462,11 +460,10 @@ if (process.env.TEST === "caxa") {
     assert.equal((await execa(output, { all: true })).all, "false");
   })();
 
-  /*
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--dedupe${
+      `echo-command-line-parameters--no-dedupe${
         process.platform === "win32" ? ".exe" : ""
       }`
     );
@@ -479,12 +476,12 @@ if (process.env.TEST === "caxa") {
       "--no-dedupe",
       "--",
       "{{caxa}}/node_modules/.bin/node",
-      "--print",
-      'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "package-lock.json")))',
+      "--input-type",
+      "module",
+      "--eval",
+      'console.log(JSON.stringify((await import("fs")).existsSync((await import("path")).join(String.raw`{{caxa}}`, "package-lock.json"))))',
     ]);
-    assert.equal((await execa(output, { all: true })).all,
-    "false"
-    );
+    assert.equal((await execa(output, { all: true })).all, "false");
   })();
 
   await (async () => {
@@ -501,21 +498,21 @@ if (process.env.TEST === "caxa") {
       "--output",
       output,
       "--prepare-command",
-      `"${process.execPath}" --eval "require('fs').writeFileSync('prepare-output.txt', '')"`,
+      `"${process.execPath}" --input-type module --eval "(await import('fs')).writeFileSync('prepare-output.txt', '')"`,
       "--",
       "{{caxa}}/node_modules/.bin/node",
-      "--print",
-      'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "prepare-output.txt")))',
+      "--input-type",
+      "module",
+      "--eval",
+      'console.log(JSON.stringify((await import("fs")).existsSync((await import("path")).join(String.raw`{{caxa}}`, "prepare-output.txt"))))',
     ]);
-    assert.equal((await execa(output, { all: true })).all,
-      "true"
-    );
+    assert.equal((await execa(output, { all: true })).all, "true");
   })();
 
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--include-node${
+      `echo-command-line-parameters--no-include-node${
         process.platform === "win32" ? ".exe" : ""
       }`
     );
@@ -528,12 +525,12 @@ if (process.env.TEST === "caxa") {
       "--no-include-node",
       "--",
       process.execPath,
-      "--print",
-      'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "node_modules/.bin/node")))',
+      "--input-type",
+      "module",
+      "--eval",
+      'console.log(JSON.stringify((await import("fs")).existsSync((await import("path")).join(String.raw`{{caxa}}`, "node_modules/.bin/node"))))',
     ]);
-    assert.equal((await execa(output, { all: true })).all,
-    "false"
-    );
+    assert.equal((await execa(output, { all: true })).all, "false");
   })();
 
   await (async () => {
@@ -543,23 +540,30 @@ if (process.env.TEST === "caxa") {
         process.platform === "win32" ? ".exe" : ""
       }`
     );
-    await assert.equal(
-      execa(process.execPath, [
-        "build/index.mjs",
-        "--input",
-        "examples/echo-command-line-parameters",
-        "--output",
-        output,
-        "--stub",
-        "/a-path-that-doesnt-exist",
-        "--",
-        "{{caxa}}/node_modules/.bin/node",
-        "{{caxa}}/index.mjs",
-        "some",
-        "embedded arguments",
-        "--an-option-thats-part-of-the-command",
-      ])
-    ).rejects.toThrowError();
+    assert.equal(
+      (
+        await execa(
+          process.execPath,
+          [
+            "build/index.mjs",
+            "--input",
+            "examples/echo-command-line-parameters",
+            "--output",
+            output,
+            "--stub",
+            "/a-path-that-does-not-exist",
+            "--",
+            "{{caxa}}/node_modules/.bin/node",
+            "{{caxa}}/index.mjs",
+            "some",
+            "embedded arguments",
+            "--an-option-thats-part-of-the-command",
+          ],
+          { reject: false }
+        )
+      ).exitCode,
+      1
+    );
   })();
 
   await (async () => {
@@ -579,18 +583,18 @@ if (process.env.TEST === "caxa") {
       "identifier",
       "--",
       process.execPath,
-      "--print",
-      'JSON.stringify(require("fs").existsSync(require("path").join(require("os").tmpdir(), "caxa/applications/identifier")))',
+      "--input-type",
+      "module",
+      "--eval",
+      'console.log(JSON.stringify((await import("fs")).existsSync((await import("path")).join((await import("os")).tmpdir(), "caxa/applications/identifier"))))',
     ]);
-    assert.equal((await execa(output, { all: true })).all,
-      "true"
-    );
+    assert.equal((await execa(output, { all: true })).all, "true");
   })();
 
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--remove-build-directory${
+      `echo-command-line-parameters--no-remove-build-directory${
         process.platform === "win32" ? ".exe" : ""
       }`
     );
@@ -605,12 +609,12 @@ if (process.env.TEST === "caxa") {
       `"${process.execPath}" --eval "require('fs').writeFileSync('build-directory.txt', process.cwd())"`,
       "--",
       process.execPath,
-      "--print",
-      'JSON.stringify(require("fs").existsSync(require("fs").readFileSync(require("path").join(String.raw`{{caxa}}`, "build-directory.txt"), "utf8")))',
+      "--input-type",
+      "module",
+      "--eval",
+      'console.log(JSON.stringify((await import("fs")).existsSync((await import("fs")).readFileSync((await import("path")).join(String.raw`{{caxa}}`, "build-directory.txt"), "utf8"))))',
     ]);
-    assert.equal((await execa(output, { all: true })).all,
-      "true"
-    );
+    assert.equal((await execa(output, { all: true })).all, "true");
   })();
 
   await (async () => {
@@ -635,11 +639,19 @@ if (process.env.TEST === "caxa") {
       "embedded arguments",
       "--an-option-thats-part-of-the-command",
     ]);
-    assert.equal((await execa(output, { all: true })).all).toMatch(
-      "This may take a while to run the first time, please wait..."
+    assert.equal(
+      (await execa(output, { all: true })).all,
+      dedent`
+        This may take a while to run the first time, please wait...
+        [
+          "some",
+          "embedded arguments",
+          "--an-option-thats-part-of-the-command"
+        ]
+      `
     );
   })();
-  */
+
   process.exit(0);
 }
 
