@@ -8,8 +8,8 @@
     "binary"
   ],
   "homepage": "https://github.com/leafac/caxa",
+  "repository": "https://github.com/leafac/caxa",
   "bugs": "https://github.com/leafac/caxa/issues",
-  "repository": "leafac/caxa",
   "funding": [
     "https://patreon.com/leafac",
     "https://paypal.me/LeandroFacchinettiEU",
