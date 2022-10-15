@@ -290,7 +290,6 @@ if (process.env.TEST === "caxa") {
       );
     })();
 
-  /*
   if (process.platform !== "win32")
     await (async () => {
       const output = path.join(
@@ -315,18 +314,12 @@ if (process.env.TEST === "caxa") {
           await execa(output, ["and", "some arguments passed on the call"], {
             all: true,
           })
-        ).all
-      ,`
-      "[
-        \\"some\\",
-        \\"embedded arguments\\",
-        \\"--an-option-thats-part-of-the-command\\",
-        \\"and\\",
-        \\"some arguments passed on the call\\"
-      ]"
-    `);
+        ).all,
+        dedent``
+      );
     })();
 
+  /*
   await (async () => {
     const output = path.join(
       testsDirectory,
@@ -343,12 +336,7 @@ if (process.env.TEST === "caxa") {
       "{{caxa}}/node_modules/.bin/node",
       "{{caxa}}/index.mjs",
     ]);
-    assert.equal((await execa(output, { all: true })).all,`
-          "@leafac/sqlite: {
-            \\"example\\": \\"caxa native modules\\"
-          }
-          sharp: 48"
-      `);
+    assert.equal((await execa(output, { all: true })).all,dedent``);
   })();
 
   await (async () => {
