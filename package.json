@@ -1,6 +1,6 @@
 {
   "name": "caxa",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Package Node.js applications into executable binaries",
   "author": "Leandro Facchinetti <caxa@leafac.com> (https://leafac.com)",
   "homepage": "https://github.com/leafac/caxa",
