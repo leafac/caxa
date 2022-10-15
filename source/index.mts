@@ -212,6 +212,7 @@ if (process.env.TEST === "caxa") {
 
   await fs.remove(caxaDirectory);
 
+  /*
   await (async () => {
     const output = path.join(
       testsDirectory,
@@ -327,7 +328,6 @@ if (process.env.TEST === "caxa") {
       );
     })();
 
-  /*
   await (async () => {
     const output = path.join(
       testsDirectory,
@@ -344,8 +344,17 @@ if (process.env.TEST === "caxa") {
       "{{caxa}}/node_modules/.bin/node",
       "{{caxa}}/index.mjs",
     ]);
-    assert.equal((await execa(output, { all: true })).all,dedent``);
+    assert.equal(
+      (await execa(output, { all: true })).all,
+      dedent`
+        @leafac/sqlite: {
+          "example": "caxa native modules"
+        }
+        sharp: 48
+      `
+    );
   })();
+  */
 
   await (async () => {
     const output = path.join(
@@ -362,11 +371,10 @@ if (process.env.TEST === "caxa") {
       "{{caxa}}/node_modules/.bin/node",
       "{{caxa}}/index.mjs",
     ]);
-    await assert.equal(execa(output)).rejects.toThrowError(
-      "Command failed with exit code 1"
-    );
+    assert.equal((await execa(output, { reject: false })).exitCode, 1);
   })();
 
+  /*
   await (async () => {
     const output = path.join(
       testsDirectory,
