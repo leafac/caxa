@@ -315,7 +315,15 @@ if (process.env.TEST === "caxa") {
             all: true,
           })
         ).all,
-        dedent``
+        dedent`
+          [
+            "some",
+            "embedded arguments",
+            "--an-option-thats-part-of-the-command",
+            "and",
+            "some arguments passed on the call"
+          ]
+        `
       );
     })();
 
