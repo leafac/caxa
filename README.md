@@ -553,6 +553,10 @@ As you see from this long README, despite being simple in spirit, caxa is the re
 
 ### Changelog
 
+#### v3.0.1 · 2022-10-15
+
+Hotfix of v3.0.0 whose binary detection didn’t work when executed from `npx` 🤦‍♂️
+
 #### v3.0.0 · 2022-10-15
 
 This version modernizes the codebase in preparation to add new features, for example, the much anticipated <https://github.com/leafac/caxa/pull/60>.

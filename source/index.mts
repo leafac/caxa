@@ -655,7 +655,7 @@ if (process.env.TEST === "caxa") {
   process.exit(0);
 }
 
-if (url.fileURLToPath(import.meta.url) === path.resolve(process.argv[1]))
+if (url.fileURLToPath(import.meta.url) === (await fs.realpath(process.argv[1])))
   await commander.program
     .name("caxa")
     .description("Package Node.js applications into executable binaries")
