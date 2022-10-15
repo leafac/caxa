@@ -457,7 +457,7 @@ if (process.env.TEST === "caxa") {
       "--print",
       'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "index.mjs")))',
     ]);
-    assert.equal((await execa(output, { all: true })).all, `false`);
+    assert.equal((await execa(output, { all: true })).all, "false");
   })();
 
   /*
@@ -481,7 +481,7 @@ if (process.env.TEST === "caxa") {
       'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "package-lock.json")))',
     ]);
     assert.equal((await execa(output, { all: true })).all,
-      `false`
+    "false"
     );
   })();
 
@@ -506,7 +506,7 @@ if (process.env.TEST === "caxa") {
       'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "prepare-output.txt")))',
     ]);
     assert.equal((await execa(output, { all: true })).all,
-      `true`
+      "true"
     );
   })();
 
@@ -530,7 +530,7 @@ if (process.env.TEST === "caxa") {
       'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "node_modules/.bin/node")))',
     ]);
     assert.equal((await execa(output, { all: true })).all,
-      `false`
+    "false"
     );
   })();
 
@@ -581,7 +581,7 @@ if (process.env.TEST === "caxa") {
       'JSON.stringify(require("fs").existsSync(require("path").join(require("os").tmpdir(), "caxa/applications/identifier")))',
     ]);
     assert.equal((await execa(output, { all: true })).all,
-      `true`
+      "true"
     );
   })();
 
@@ -607,7 +607,7 @@ if (process.env.TEST === "caxa") {
       'JSON.stringify(require("fs").existsSync(require("fs").readFileSync(require("path").join(String.raw`{{caxa}}`, "build-directory.txt"), "utf8")))',
     ]);
     assert.equal((await execa(output, { all: true })).all,
-      `true`
+      "true"
     );
   })();
 
