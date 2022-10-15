@@ -454,8 +454,10 @@ if (process.env.TEST === "caxa") {
       "examples/echo-command-line-parameters/index.mjs",
       "--",
       "{{caxa}}/node_modules/.bin/node",
-      "--print",
-      'JSON.stringify(require("fs").existsSync(require("path").join(String.raw`{{caxa}}`, "index.mjs")))',
+      "--input-type",
+      "module",
+      "--eval",
+      'console.log(JSON.stringify((await import("fs")).existsSync((await import("path")).join(String.raw`{{caxa}}`, "index.mjs"))))',
     ]);
     assert.equal((await execa(output, { all: true })).all, "false");
   })();
