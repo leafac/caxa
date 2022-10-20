@@ -134,9 +134,10 @@ export default async function caxa({
     let stub =
       bash`
         #!/usr/bin/env sh
-        export CAXA_DIRECTORY="${process.platform === "darwin"
-          ? bash`$HOME/Library/Caches`
-          : bash("${XDG_CACHE_HOME-$HOME/.cache}")
+        export CAXA_DIRECTORY="${
+          process.platform === "darwin"
+            ? bash`$HOME/Library/Caches`
+            : bash("${XDG_CACHE_HOME-$HOME/.cache}")
         }/caxa"
         export CAXA_EXTRACTION_ATTEMPT=-1
         while true
@@ -153,10 +154,11 @@ export default async function caxa({
               break
             fi
           else
-            ${uncompressionMessage === undefined
-          ? bash``
-          : bash`echo "${uncompressionMessage}" >&2`
-        }
+            ${
+              uncompressionMessage === undefined
+                ? bash``
+                : bash`echo "${uncompressionMessage}" >&2`
+            }
             mkdir -p "$CAXA_LOCK"
             mkdir -p "$CAXA_APPLICATION_DIRECTORY"
             tail -n+{{caxa-number-of-lines}} "$0" | tar -xz -C "$CAXA_APPLICATION_DIRECTORY"
@@ -217,7 +219,8 @@ if (process.env.TEST === "caxa") {
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters${process.platform === "win32" ? ".exe" : ""
+      `echo-command-line-parameters${
+        process.platform === "win32" ? ".exe" : ""
       }`
     );
     await execa(process.execPath, [
@@ -376,7 +379,8 @@ if (process.env.TEST === "caxa") {
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--no-force${process.platform === "win32" ? ".exe" : ""
+      `echo-command-line-parameters--no-force${
+        process.platform === "win32" ? ".exe" : ""
       }`
     );
     await fs.ensureDir(path.dirname(output));
@@ -438,7 +442,8 @@ if (process.env.TEST === "caxa") {
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--exclude${process.platform === "win32" ? ".exe" : ""
+      `echo-command-line-parameters--exclude${
+        process.platform === "win32" ? ".exe" : ""
       }`
     );
     await execa(process.execPath, [
@@ -462,7 +467,8 @@ if (process.env.TEST === "caxa") {
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--no-dedupe${process.platform === "win32" ? ".exe" : ""
+      `echo-command-line-parameters--no-dedupe${
+        process.platform === "win32" ? ".exe" : ""
       }`
     );
     await execa(process.execPath, [
@@ -485,7 +491,8 @@ if (process.env.TEST === "caxa") {
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--prepare-command${process.platform === "win32" ? ".exe" : ""
+      `echo-command-line-parameters--prepare-command${
+        process.platform === "win32" ? ".exe" : ""
       }`
     );
     await execa(process.execPath, [
@@ -509,7 +516,8 @@ if (process.env.TEST === "caxa") {
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--no-include-node${process.platform === "win32" ? ".exe" : ""
+      `echo-command-line-parameters--no-include-node${
+        process.platform === "win32" ? ".exe" : ""
       }`
     );
     await execa(process.execPath, [
@@ -532,7 +540,8 @@ if (process.env.TEST === "caxa") {
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--stub${process.platform === "win32" ? ".exe" : ""
+      `echo-command-line-parameters--stub${
+        process.platform === "win32" ? ".exe" : ""
       }`
     );
     assert.equal(
@@ -564,7 +573,8 @@ if (process.env.TEST === "caxa") {
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--identifier${process.platform === "win32" ? ".exe" : ""
+      `echo-command-line-parameters--identifier${
+        process.platform === "win32" ? ".exe" : ""
       }`
     );
     await execa(process.execPath, [
@@ -588,7 +598,8 @@ if (process.env.TEST === "caxa") {
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--no-remove-build-directory${process.platform === "win32" ? ".exe" : ""
+      `echo-command-line-parameters--no-remove-build-directory${
+        process.platform === "win32" ? ".exe" : ""
       }`
     );
     await execa(process.execPath, [
@@ -613,7 +624,8 @@ if (process.env.TEST === "caxa") {
   await (async () => {
     const output = path.join(
       testsDirectory,
-      `echo-command-line-parameters--uncompression-message${process.platform === "win32" ? ".exe" : ""
+      `echo-command-line-parameters--uncompression-message${
+        process.platform === "win32" ? ".exe" : ""
       }`
     );
     await execa(process.execPath, [
@@ -701,7 +713,7 @@ if (url.fileURLToPath(import.meta.url) === (await fs.realpath(process.argv[1])))
     .addHelpText(
       "after",
       "\n" +
-      dedent`
+        dedent`
           Examples:
             Windows:
             > caxa --input "examples/echo-command-line-parameters" --output "echo-command-line-parameters.exe" -- "{{caxa}}/node_modules/.bin/node" "{{caxa}}/index.mjs" "some" "embedded arguments" "--an-option-thats-part-of-the-command"
