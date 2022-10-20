@@ -46,10 +46,15 @@ func main() {
 		log.Fatalf("caxa stub: Failed to parse JSON in footer: %v", err)
 	}
 
+	cacheDirectory, err := os.UserCacheDir()
+	if err != nil {
+		log.Fatalf("caxa stub: Failed to get the user cache directory: %v", err)
+	}
+	caxaDirectory := path.Join(cacheDirectory, "caxa")
 	var applicationDirectory string
 	for extractionAttempt := 0; true; extractionAttempt++ {
-		lock := path.Join(os.TempDir(), "caxa/locks", footer.Identifier, strconv.Itoa(extractionAttempt))
-		applicationDirectory = path.Join(os.TempDir(), "caxa/applications", footer.Identifier, strconv.Itoa(extractionAttempt))
+		lock := path.Join(caxaDirectory, "locks", footer.Identifier, strconv.Itoa(extractionAttempt))
+		applicationDirectory = path.Join(caxaDirectory, "applications", footer.Identifier, strconv.Itoa(extractionAttempt))
 		applicationDirectoryFileInfo, err := os.Stat(applicationDirectory)
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			log.Fatalf("caxa stub: Failed to find information about the application directory: %v", err)
