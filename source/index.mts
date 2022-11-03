@@ -2,10 +2,11 @@
 
 import path from "node:path";
 import url from "node:url";
+import fs from "node:fs/promises";
+import * as fsCallback from "node:fs";
 import os from "node:os";
 import stream from "node:stream/promises";
 import assert from "node:assert/strict";
-import fs from "fs-extra";
 import { globbySync } from "globby";
 import { execa, execaCommand } from "execa";
 import cryptoRandomString from "crypto-random-string";
@@ -21,12 +22,11 @@ export default async function caxa({
   force = true,
   exclude = [],
   filter = (() => {
-    const pathsToExclude = globbySync(exclude, {
+    const excludes = globbySync(exclude, {
       expandDirectories: false,
       onlyFiles: false,
-    }).map((pathToExclude: string) => path.normalize(pathToExclude));
-    return (pathToCopy: string) =>
-      !pathsToExclude.includes(path.normalize(pathToCopy));
+    }).map((exclude) => path.normalize(exclude));
+    return (source) => !excludes.includes(path.normalize(source));
   })(),
   dedupe = true,
   prepareCommand,
@@ -53,7 +53,7 @@ export default async function caxa({
   command: string[];
   force?: boolean;
   exclude?: string[];
-  filter?: fs.CopyFilterSync | fs.CopyFilterAsync;
+  filter?: fsCallback.CopyOptions["filter"];
   dedupe?: boolean;
   prepareCommand?: string;
   prepare?: (buildDirectory: string) => Promise<void>;
@@ -63,9 +63,20 @@ export default async function caxa({
   removeBuildDirectory?: boolean;
   uncompressionMessage?: string;
 }): Promise<void> {
-  if (!(await fs.pathExists(input)) || !(await fs.lstat(input)).isDirectory())
+  if (
+    !(await fs
+      .stat(input)
+      .then((stats) => stats.isDirectory())
+      .catch(() => false))
+  )
     throw new Error(`Input isn’t a directory: ‘${input}’.`);
-  if ((await fs.pathExists(output)) && !force)
+  if (
+    (await fs
+      .access(output)
+      .then(() => true)
+      .catch(() => false)) &&
+    !force
+  )
     throw new Error(`Output already exists: ‘${output}’.`);
   if (process.platform === "win32" && !output.endsWith(".exe"))
     throw new Error("Windows executable must end in ‘.exe’.");
@@ -75,7 +86,7 @@ export default async function caxa({
     "caxa/builds",
     cryptoRandomString({ length: 10, type: "alphanumeric" }).toLowerCase()
   );
-  await fs.copy(input, buildDirectory, { filter });
+  await fs.cp(input, buildDirectory, { recursive: true, filter });
   if (dedupe)
     await execa("npm", ["dedupe", "--production"], { cwd: buildDirectory });
   await prepare(buildDirectory);
@@ -85,33 +96,31 @@ export default async function caxa({
       "node_modules/.bin",
       path.basename(process.execPath)
     );
-    await fs.ensureDir(path.dirname(node));
-    await fs.copyFile(process.execPath, node);
+    await fs.mkdir(path.dirname(node), { recursive: true });
+    await fs.cp(process.execPath, node);
   }
 
-  await fs.ensureDir(path.dirname(output));
-  await fs.remove(output);
+  await fs.mkdir(path.dirname(output), { recursive: true });
+  await fs.rm(output, { recursive: true, force: true });
 
   if (output.endsWith(".app")) {
     if (process.platform !== "darwin")
       throw new Error(
         "macOS Application Bundles (.app) are supported in macOS only."
       );
-    await fs.ensureDir(path.join(output, "Contents/Resources"));
-    await fs.move(
-      buildDirectory,
-      path.join(output, "Contents/Resources/application")
-    );
-    await fs.ensureDir(path.join(output, "Contents/MacOS"));
     const name = path.basename(output, ".app");
+    await fs.mkdir(path.join(output, "Contents/MacOS"), { recursive: true });
     await fs.writeFile(
       path.join(output, "Contents/MacOS", name),
       bash`
-        #!/usr/bin/env sh
-        open "$(dirname "$0")/../Resources/${name}"
-      ` + "\n",
+          #!/usr/bin/env sh
+          open "$(dirname "$0")/../Resources/${name}"
+        ` + "\n",
       { mode: 0o755 }
     );
+    await fs.mkdir(path.join(output, "Contents/Resources"), {
+      recursive: true,
+    });
     await fs.writeFile(
       path.join(output, "Contents/Resources", name),
       bash`
@@ -127,6 +136,10 @@ export default async function caxa({
           .join(" ")}
       ` + "\n",
       { mode: 0o755 }
+    );
+    await fs.rename(
+      buildDirectory,
+      path.join(output, "Contents/Resources/application")
     );
   } else if (output.endsWith(".sh")) {
     if (process.platform === "win32")
@@ -179,11 +192,16 @@ export default async function caxa({
     await fs.writeFile(output, stub, { mode: 0o755 });
     await appendTarballOfBuildDirectoryToOutput();
   } else {
-    if (!(await fs.pathExists(stub)))
+    if (
+      !(await fs
+        .access(stub)
+        .then(() => true)
+        .catch(() => false))
+    )
       throw new Error(
         `Stub not found (your operating system / architecture may be unsupported): ‘${stub}’`
       );
-    await fs.copyFile(stub, output);
+    await fs.cp(stub, output);
     await fs.chmod(output, 0o755);
     await appendTarballOfBuildDirectoryToOutput();
     await fs.appendFile(
@@ -192,11 +210,12 @@ export default async function caxa({
     );
   }
 
-  if (removeBuildDirectory) await fs.remove(buildDirectory);
+  if (removeBuildDirectory)
+    await fs.rm(buildDirectory, { recursive: true, force: true });
 
   async function appendTarballOfBuildDirectoryToOutput(): Promise<void> {
     const archive = archiver("tar", { gzip: true });
-    const archiveStream = fs.createWriteStream(output, { flags: "a" });
+    const archiveStream = fsCallback.createWriteStream(output, { flags: "a" });
     archive.pipe(archiveStream);
     archive.directory(buildDirectory, false);
     await archive.finalize();
@@ -210,7 +229,7 @@ if (process.env.TEST === "caxa") {
   const caxaDirectory = path.join(os.tmpdir(), "caxa");
   const testsDirectory = path.join(caxaDirectory, "tests");
 
-  await fs.remove(caxaDirectory);
+  await fs.rm(caxaDirectory, { recursive: true, force: true });
 
   await (async () => {
     const output = path.join(
@@ -379,7 +398,7 @@ if (process.env.TEST === "caxa") {
         process.platform === "win32" ? ".exe" : ""
       }`
     );
-    await fs.ensureDir(path.dirname(output));
+    await fs.mkdir(path.dirname(output), { recursive: true });
     await fs.writeFile(output, "");
     await execa(process.execPath, [
       "build/index.mjs",
