@@ -553,6 +553,10 @@ As you see from this long README, despite being simple in spirit, caxa is the re
 
 ### Changelog
 
+#### Unreleased
+
+- Changed from [`fs-extra`](https://www.npmjs.im/fs-extra) to native Node.js’s [`fs`](https://nodejs.org/api/fs.html).
+
 #### v3.0.1 · 2022-10-15
 
 Hotfix of v3.0.0 whose binary detection didn’t work when executed from `npx` 🤦‍♂️
