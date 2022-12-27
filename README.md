@@ -1,5 +1,10 @@
 <!--
 
+- Forward signals such as `SIGTERM` from the stub into the command
+  - `SIGINT` we get for free because the terminal signals the whole process group, so perhaps don’t forward that one
+  - Perhaps even better: `exec` out of the stub and don’t keep it around. It seems to consume some CPU anyway…
+    - This may only be possible in macOS & Linux
+
 Document JavaScript API
 
 TODO: Use `exec` on Go stub on macOS & Linux.
