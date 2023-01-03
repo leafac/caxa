@@ -28,6 +28,7 @@
     "test:stubs": "npm run prepare:stubs && npm test"
   },
   "dependencies": {
+    "@leafac/node": "^0.0.1",
     "archiver": "^5.3.1",
     "commander": "^9.4.1",
     "crypto-random-string": "^5.0.0",

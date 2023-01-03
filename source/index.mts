@@ -14,6 +14,7 @@ import bash from "dedent";
 import archiver from "archiver";
 import * as commander from "commander";
 import dedent from "dedent";
+import * as node from "@leafac/node";
 
 export default async function caxa({
   input,
@@ -674,7 +675,7 @@ if (process.env.TEST === "caxa") {
   process.exit(0);
 }
 
-if (url.fileURLToPath(import.meta.url) === (await fs.realpath(process.argv[1])))
+if (await node.isExecuted(import.meta.url))
   await commander.program
     .name("caxa")
     .description("Package Node.js applications into executable binaries")
