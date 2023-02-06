@@ -1,5 +1,7 @@
 <!--
 
+- Provide a way to get a hold of the directory in which the binary is (that’s not the same as `cwd` or `import.meta.url`)
+
 - Forward signals such as `SIGTERM` from the stub into the command
   - `SIGINT` we get for free because the terminal signals the whole process group, so perhaps don’t forward that one
   - Perhaps even better: `exec` out of the stub and don’t keep it around. It seems to consume some CPU anyway…
