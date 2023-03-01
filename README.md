@@ -432,7 +432,7 @@ Creating a self-extracting batch file for Windows (an idea I didn’t pursue, go
 
 Other tools that create self-extracting archives:
 
-- 7-Zip. It was studying 7-Zip that I learned that you can append data to a binary. caxa uses an approach that’s similar to 7-Zip’s to build a self-extracting archive. The major different in the binary layout is that the metadata goes in the footer, instead of between the stub and the archive like in 7-Zip. Switching these two around allows caxa to read the footer and potentially skip looking at the archive altogether if it isn’t the first time you’re running the application and it’s already cached. Unfortunately I couldn’t use 7-Zip itself because it’s tailored for **installers** as opposed to **applications**, so some things don’t work well.
+- 7-Zip. It was studying 7-Zip that I learned that you can append data to a binary. caxa uses an approach that’s similar to 7-Zip’s to build a self-extracting archive. The major difference in the binary layout is that the metadata goes in the footer, instead of between the stub and the archive like in 7-Zip. Switching these two around allows caxa to read the footer and potentially skip looking at the archive altogether if it isn’t the first time you’re running the application and it’s already cached. Unfortunately I couldn’t use 7-Zip itself because it’s tailored for **installers** as opposed to **applications**, so some things don’t work well.
   - <https://sevenzip.osdn.jp/chm/start.htm>
   - <https://sevenzip.osdn.jp/chm/cmdline/switches/sfx.htm>
   - <https://superuser.com/questions/42788/is-it-possible-to-execute-a-file-after-extraction-from-a-7-zip-self-extracting-a>
