@@ -38,7 +38,7 @@ func main() {
 	}
 	footerTmp := executable[footerIndex+len(footerSeparator):]
 	footerEnd := []byte("\n")
-	footerEndIndex := bytes.LastIndex(footerTmp, footerEnd)
+	footerEndIndex := bytes.Index(footerTmp, footerEnd)
 	footerString := footerTmp[:footerEndIndex]
 
 	var footer struct {
