@@ -207,7 +207,7 @@ export default async function caxa({
     await appendTarballOfBuildDirectoryToOutput();
     await fs.appendFile(
       output,
-      "\n" + JSON.stringify({ identifier, command, uncompressionMessage })
+      "caxa-footer\n" + JSON.stringify({ identifier, command, uncompressionMessage }) + '\n'
     );
   }
 

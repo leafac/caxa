@@ -31,12 +31,16 @@ func main() {
 		log.Fatalf("caxa stub: Failed to read executable: %v", err)
 	}
 
-	footerSeparator := []byte("\n")
+	footerSeparator := []byte("caxa-footer\n")
 	footerIndex := bytes.LastIndex(executable, footerSeparator)
 	if footerIndex == -1 {
 		log.Fatalf("caxa stub: Failed to find footer (did you append an archive and a footer to the stub?): %v", err)
 	}
-	footerString := executable[footerIndex+len(footerSeparator):]
+	footerTmp := executable[footerIndex+len(footerSeparator):]
+	footerEnd := []byte("\n")
+	footerEndIndex := bytes.LastIndex(footerTmp, footerEnd)
+	footerString := footerTmp[:footerEndIndex]
+
 	var footer struct {
 		Identifier           string   `json:"identifier"`
 		Command              []string `json:"command"`
