@@ -12,6 +12,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -126,6 +127,18 @@ func main() {
 	command.Stdin = os.Stdin
 	command.Stdout = os.Stdout
 	command.Stderr = os.Stderr
+
+	// Pass signals through to the child process.
+	sigChan := make(chan os.Signal, 1)
+    signal.Notify(sigChan)
+    go func() {
+        for sig := range sigChan {
+            if command.Process != nil {
+                command.Process.Signal(sig)
+            }
+        }
+    }()
+
 	err = command.Run()
 	var exitError *exec.ExitError
 	if errors.As(err, &exitError) {
