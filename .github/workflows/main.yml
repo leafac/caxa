@@ -6,8 +6,8 @@ jobs:
         os: [windows, macos, ubuntu]
     runs-on: ${{ matrix.os }}-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout
+      - uses: actions/setup-node
         with:
           node-version: latest
       - run: npm install-ci-test
@@ -17,8 +17,8 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout
+      - uses: actions/setup-node
         with:
           node-version: latest
           registry-url: https://registry.npmjs.org/
