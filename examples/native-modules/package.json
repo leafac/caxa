@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "@leafac/sqlite": "^3.2.1",
-    "crypto-random-string": "^5.0.0",
-    "fs-extra": "^10.1.0",
-    "sharp": "^0.31.1"
-  }
-}
